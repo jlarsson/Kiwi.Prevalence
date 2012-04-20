@@ -1,0 +1,16 @@
+packages/
+bin/
+obj/
+pack/
+*.dll
+*.user
+*.suo
+*.pdb
+*.nupkg
+*.gpstate
+*.cache
+*.ncrunchproject
+*.ncrunchsolution
+.nuget
+_resharper*
+Thumbs.db
