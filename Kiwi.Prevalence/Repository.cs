@@ -5,59 +5,82 @@ using Kiwi.Prevalence.Marshalling;
 
 namespace Kiwi.Prevalence
 {
-    public class Repository<TModel> : IRepository<TModel> where TModel : new()
+    public class Repository<TModel> : IRepository<TModel>
     {
-        public Repository(RepositoryConfiguration configuration)
+        private readonly object _initializeSync = new object();
+        private string _path;
+
+        public Repository(
+            IRepositoryConfiguration configuration,
+            IModelFactory<TModel> modelFactory)
         {
+            ModelFactory = modelFactory;
             CommandSerializer = configuration.CommandSerializer;
-            Journal = configuration.JournalFactory.CreateJournal(configuration);
+            JournalFactory = configuration.JournalFactory;
             QuerySerializer = configuration.QuerySerializer;
             Synchronization = configuration.Synchronization;
-
-            Model = Journal.Restore<TModel>();
         }
 
-        public ICommandSerializer CommandSerializer { get; set; }
-        public IJournal Journal { get; set; }
-        public IQuerySerializer QuerySerializer { get; set; }
-        public ISynchronization Synchronization { get; set; }
+        public IModelFactory<TModel> ModelFactory { get; set; }
 
-        #region IRepository<TModel> Members
+        public IJournalFactory JournalFactory { get; protected set; }
+
+        public string Path
+        {
+            get { return _path; }
+            set
+            {
+                if (IsInitialized())
+                {
+                    throw new ApplicationException("Path cannot be changed after a repository is initialized");
+                }
+                _path = System.IO.Path.GetFullPath(value);
+            }
+        }
+
+        public ICommandSerializer CommandSerializer { get; protected set; }
+        public IJournal Journal { get; protected set; }
+        public IQuerySerializer QuerySerializer { get; protected set; }
+        public ISynchronization Synchronization { get; protected set; }
 
         public TModel Model { get; protected set; }
 
+        #region IRepository<TModel> Members
+
         public long SnapshotRevision
         {
-            get { return Journal.SnapshotRevision;  }
+            get
+            {
+                EnsureInitialized();
+                return Journal.SnapshotRevision;
+            }
         }
 
         public long Revision
         {
-            get { return Journal.Revision; }
+            get
+            {
+                EnsureInitialized();
+                return Journal.Revision;
+            }
         }
 
         public TResult Query<TResult>(Func<TModel, TResult> query)
         {
+            EnsureInitialized();
             return Synchronization.Read(() => QuerySerializer.MarshallQueryResult(query(Model)));
         }
 
         public TResult Execute<TResult>(ICommand<TModel, TResult> command)
         {
+            EnsureInitialized();
             return Synchronization.Write(() =>
                                              {
                                                  var action = command.Prepare(Model);
                                                  Journal.LogCommand(command);
-
-                                                 //if ((Journal.SequenceNumber % 10) == 0)
-                                                 //{
-                                                 //    Journal.SaveSnapshot(Model);
-                                                 //}
-
                                                  return QuerySerializer.MarshallCommandResult(action());
                                              });
         }
-
-        #endregion
 
         public void Dispose()
         {
@@ -69,11 +92,33 @@ namespace Kiwi.Prevalence
 
         public void SaveSnapshot()
         {
-            Synchronization.Read(() =>
+            Synchronization.Write(() =>
                                      {
                                          Journal.SaveSnapshot(Model);
                                          return true;
                                      });
+        }
+
+        #endregion
+
+        private bool IsInitialized()
+        {
+            return Journal != null;
+        }
+
+        private void EnsureInitialized()
+        {
+            if (Journal == null)
+            {
+                lock (_initializeSync)
+                {
+                    if (Journal == null)
+                    {
+                        Journal = JournalFactory.CreateJournal(CommandSerializer, _path);
+                        Model = Journal.Restore(ModelFactory);
+                    }
+                }
+            }
         }
     }
 }

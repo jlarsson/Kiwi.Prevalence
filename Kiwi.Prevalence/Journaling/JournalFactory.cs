@@ -2,9 +2,13 @@ namespace Kiwi.Prevalence.Journaling
 {
     public class JournalFactory : IJournalFactory
     {
-        public IJournal CreateJournal(RepositoryConfiguration configuration)
+        #region IJournalFactory Members
+
+        public IJournal CreateJournal(ICommandSerializer commandSerializer, string path)
         {
-            return new Journal(configuration);
+            return new Journal(commandSerializer, path);
         }
+
+        #endregion
     }
 }

@@ -8,5 +8,6 @@ namespace Kiwi.Prevalence
         long Revision { get; }
         TResult Query<TResult>(Func<TModel, TResult> query);
         TResult Execute<TResult>(ICommand<TModel, TResult> command);
+        void SaveSnapshot();
     }
 }

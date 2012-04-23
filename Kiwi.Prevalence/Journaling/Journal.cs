@@ -1,9 +1,4 @@
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using Ionic.Zip;
 using Kiwi.Json;
 using Kiwi.Json.Conversion;
 using Kiwi.Json.Untyped;
@@ -12,12 +7,19 @@ namespace Kiwi.Prevalence.Journaling
 {
     public class Journal : IJournal
     {
-        public Journal(RepositoryConfiguration configuration)
+        public class SnapshotHead
         {
-            BasePath = configuration.BasePath;
-            JournalPath = configuration.BasePath + ".journal";
-            CommandSerializer = configuration.CommandSerializer;
+            public long Revision { get; set; }
         }
+        public Journal(ICommandSerializer commandSerializer, string path)
+        {
+            BasePath = path;
+            JournalPath = path + ".journal";
+            SnapshotPath = path + ".snapshot";
+            CommandSerializer = commandSerializer;
+        }
+
+        protected string SnapshotPath { get; set; }
 
         public string BasePath { get; set; }
         public string JournalPath { get; private set; }
@@ -48,35 +50,70 @@ namespace Kiwi.Prevalence.Journaling
             JournalWriter.Flush();
         }
 
-        public TModel Restore<TModel>() where TModel : new()
+        public TModel Restore<TModel>(IModelFactory<TModel> modelFactory)
         {
-            var model = RestoreSnapshot<TModel>();
-            RestoreJournalEntries(model);
+            var model = modelFactory.CreateModel();
+            if (File.Exists(SnapshotPath))
+            {
+                using (var reader = new StreamReader(OpenReadStream(SnapshotPath)))
+                {
+                    var parser = new JsonTextParser(reader);
+
+                    var head = JsonConvert.Parse(parser, new SnapshotHead());
+                    JsonConvert.Parse(parser, model);
+
+                    Revision = head.Revision;
+                    SnapshotRevision = head.Revision;
+                }
+                modelFactory.Restore(model);
+            }
+
+            if (File.Exists(JournalPath))
+            {
+                using (var reader = new StreamReader(OpenReadStream(JournalPath)))
+                {
+                    var parser = new JsonTextParser(reader);
+                    while (!parser.EndOfInput())
+                    {
+                        var entry = JsonConvert.Parse<LogEntry>(parser, null);
+                        var command = CommandSerializer.Deserialize(entry.Command,
+                                                                    new DeserializeHint { Type = entry.CommandType });
+
+                        command.Replay(model);
+
+                        Revision = entry.Revision;
+                    }
+                }
+            }
+
             return model;
         }
 
         public void SaveSnapshot<TModel>(TModel model)
         {
-            using (var zip = new ZipFile())
-            {
-                zip.AddEntry("model.json.txt", JsonConvert.Write(model), Encoding.UTF8);
-                zip.Save(BasePath + ".snapshot." + Revision + ".zip");
-            }
-            SnapshotRevision = Revision;
-
-            // Delete the journal file now that we have complete snapshot of model on zip
             if (JournalWriter != null)
             {
                 JournalWriter.Close();
                 JournalWriter = null;
             }
-            File.Delete(JournalPath);
 
-            // Delete previous snapshots
-            foreach (var snapshot in GetSnapshots().OrderByDescending(o => o.Revision).Skip(1))
+            var snapshot = new StringWriter();
+            snapshot.WriteLine(JsonConvert.Write(new SnapshotHead() {Revision = Revision}));
+            snapshot.WriteLine(JsonConvert.Write(model));
+
+            if (File.Exists(SnapshotPath))
             {
-                File.Delete(snapshot.Path);
+                File.Copy(SnapshotPath, SnapshotPath + "." + Revision);
             }
+            if (File.Exists(JournalPath))
+            {
+                File.Copy(JournalPath, JournalPath + "." + Revision);
+            }
+
+            File.WriteAllText(JournalPath,"");
+            File.WriteAllText(SnapshotPath, snapshot.ToString());
+
+            SnapshotRevision = Revision;
         }
 
         public void Dispose()
@@ -89,85 +126,9 @@ namespace Kiwi.Prevalence.Journaling
 
         #endregion
 
-        private void RestoreJournalEntries<TModel>(TModel model)
-        {
-            if (File.Exists(JournalPath))
-            {
-                using (var reader = new StreamReader(OpenReadStream(JournalPath)))
-                {
-                    var parser = new JsonTextParser(reader);
-                    while (!parser.EndOfInput())
-                    {
-                        var entry = JsonConvert.Parse<LogEntry>(parser, null);
-                        var command = CommandSerializer.Deserialize(entry.Command,
-                                                                    new DeserializeHint {Type = entry.CommandType});
-
-                        command.Replay(model);
-
-                        Revision = entry.Revision;
-                    }
-                }
-            }
-        }
-
-        private TModel RestoreSnapshot<TModel>() where TModel : new()
-        {
-            var snapshot = GetLatestSnapshot();
-
-            TModel model;
-            if (snapshot != null)
-            {
-                model = ReadModelFromSnapshot<TModel>(snapshot.Path);
-                Revision = snapshot.Revision;
-                SnapshotRevision = snapshot.Revision;
-            }
-            else
-            {
-                model = new TModel();
-            }
-            return model;
-        }
-
-        private TModel ReadModelFromSnapshot<TModel>(string path)
-        {
-            using (var zip = ZipFile.Read(path))
-            {
-                var entry = zip.First(e => e.FileName == "model.json.txt");
-                using (var reader = entry.OpenReader())
-                {
-                    return JsonConvert.Parse<TModel>(new StreamReader(reader, Encoding.UTF8).ReadToEnd());
-                }
-            }
-        }
-
         private Stream OpenReadStream(string path, FileMode fileMode = FileMode.Open)
         {
             return new FileStream(path, fileMode, FileAccess.Read, FileShare.ReadWrite);
-        }
-
-        private SnapshotFileInfo GetLatestSnapshot()
-        {
-            return GetSnapshots().OrderByDescending(s => s.Revision).FirstOrDefault();
-        }
-
-        private IEnumerable<SnapshotFileInfo> GetSnapshots()
-        {
-            // Journal file name matcher
-            var snapshotMatcher = new Regex(@"\.snapshot\.(\d+)\.zip$", RegexOptions.IgnoreCase | RegexOptions.Multiline);
-
-            return
-                from p in
-                    Directory.EnumerateFiles(Path.GetDirectoryName(BasePath),
-                                             Path.GetFileName(BasePath) + ".snapshot.*")
-                let m = snapshotMatcher.Match(p)
-                where m.Success
-                let revision = long.Parse(m.Groups[1].Value)
-                orderby revision descending
-                select new SnapshotFileInfo
-                           {
-                               Revision = revision,
-                               Path = p
-                           };
         }
 
         #region Nested type: LogEntry
@@ -177,16 +138,6 @@ namespace Kiwi.Prevalence.Journaling
             public long Revision { get; set; }
             public string CommandType { get; set; }
             public IJsonValue Command { get; set; }
-        }
-
-        #endregion
-
-        #region Nested type: SnapshotFileInfo
-
-        public class SnapshotFileInfo
-        {
-            public string Path { get; set; }
-            public long Revision { get; set; }
         }
 
         #endregion

@@ -6,9 +6,11 @@ namespace Kiwi.Prevalence.Concurrency
     {
         private readonly object _sync = new object();
 
+        #region ISynchronization Members
+
         public T Read<T>(Func<T> action)
         {
-            lock(_sync)
+            lock (_sync)
             {
                 return action();
             }
@@ -21,5 +23,7 @@ namespace Kiwi.Prevalence.Concurrency
                 return action();
             }
         }
+
+        #endregion
     }
 }
