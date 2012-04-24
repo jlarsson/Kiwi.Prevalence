@@ -7,6 +7,11 @@ namespace Kiwi.Prevalence.Journaling
 {
     public class Journal : IJournal
     {
+        public class Snapshot<TModel>
+        {
+            public long Revision { get; set; }
+            public TModel Model { get; set; }
+        }
         public class SnapshotHead
         {
             public long Revision { get; set; }
@@ -59,11 +64,17 @@ namespace Kiwi.Prevalence.Journaling
                 {
                     var parser = new JsonTextParser(reader);
 
-                    var head = JsonConvert.Parse(parser, new SnapshotHead());
-                    JsonConvert.Parse(parser, model);
+                    var snapshotData = JsonConvert.Parse(parser,
+                                                         new Snapshot<TModel> { Model = model });
+                    Revision = snapshotData.Revision;
+                    SnapshotRevision = snapshotData.Revision;
 
-                    Revision = head.Revision;
-                    SnapshotRevision = head.Revision;
+
+                    //var head = JsonConvert.Parse(parser, new SnapshotHead());
+                    //JsonConvert.Parse(parser, model);
+
+                    //Revision = head.Revision;
+                    //SnapshotRevision = head.Revision;
                 }
                 modelFactory.Restore(model);
             }
@@ -98,8 +109,9 @@ namespace Kiwi.Prevalence.Journaling
             }
 
             var snapshot = new StringWriter();
-            snapshot.WriteLine(JsonConvert.Write(new SnapshotHead() {Revision = Revision}));
-            snapshot.WriteLine(JsonConvert.Write(model));
+            //snapshot.WriteLine(JsonConvert.Write(new SnapshotHead() {Revision = Revision}));
+            //snapshot.WriteLine(JsonConvert.Write(model));
+            snapshot.Write(JsonConvert.Write(new Snapshot<TModel> {Revision = Revision, Model = model}));
 
             if (File.Exists(SnapshotPath))
             {
