@@ -17,8 +17,8 @@ namespace Kiwi.Prevalence
             ModelFactory = modelFactory;
             CommandSerializer = configuration.CommandSerializer;
             JournalFactory = configuration.JournalFactory;
-            QuerySerializer = configuration.QuerySerializer;
-            Synchronization = configuration.Synchronization;
+            Marshal = configuration.Marshal;
+            Synchronize = configuration.Synchronize;
         }
 
         public IModelFactory<TModel> ModelFactory { get; set; }
@@ -40,8 +40,8 @@ namespace Kiwi.Prevalence
 
         public ICommandSerializer CommandSerializer { get; protected set; }
         public IJournal Journal { get; protected set; }
-        public IQuerySerializer QuerySerializer { get; protected set; }
-        public ISynchronization Synchronization { get; protected set; }
+        public IMarshal Marshal { get; protected set; }
+        public ISynchronize Synchronize { get; protected set; }
 
         public TModel Model { get; protected set; }
 
@@ -68,17 +68,17 @@ namespace Kiwi.Prevalence
         public TResult Query<TResult>(Func<TModel, TResult> query)
         {
             EnsureInitialized();
-            return Synchronization.Read(() => QuerySerializer.MarshallQueryResult(query(Model)));
+            return Synchronize.Read(() => Marshal.MarshalQueryResult(query(Model)));
         }
 
         public TResult Execute<TResult>(ICommand<TModel, TResult> command)
         {
             EnsureInitialized();
-            return Synchronization.Write(() =>
+            return Synchronize.Write(() =>
                                              {
                                                  var action = command.Prepare(Model);
                                                  Journal.LogCommand(command);
-                                                 return QuerySerializer.MarshallCommandResult(action());
+                                                 return Marshal.MarshalCommandResult(action());
                                              });
         }
 
@@ -92,11 +92,22 @@ namespace Kiwi.Prevalence
 
         public void SaveSnapshot()
         {
-            Synchronization.Write(() =>
+            Synchronize.Write(() =>
                                      {
                                          Journal.SaveSnapshot(Model);
                                          return true;
                                      });
+        }
+
+        public void Purge()
+        {
+            Synchronize.Write(() =>
+                                      {
+                                          EnsureInitialized();
+                                          Journal.Purge();
+                                          Model = Journal.Restore(ModelFactory);
+                                          return true;
+                                      });
         }
 
         #endregion

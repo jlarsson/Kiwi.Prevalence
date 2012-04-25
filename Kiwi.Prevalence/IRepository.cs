@@ -9,5 +9,6 @@ namespace Kiwi.Prevalence
         TResult Query<TResult>(Func<TModel, TResult> query);
         TResult Execute<TResult>(ICommand<TModel, TResult> command);
         void SaveSnapshot();
+        void Purge();
     }
 }

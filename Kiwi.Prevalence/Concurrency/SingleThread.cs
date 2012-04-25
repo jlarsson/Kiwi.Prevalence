@@ -2,7 +2,7 @@ using System;
 
 namespace Kiwi.Prevalence.Concurrency
 {
-    public class SingleThread : ISynchronization
+    public class SingleThread : ISynchronize
     {
         private readonly object _sync = new object();
 

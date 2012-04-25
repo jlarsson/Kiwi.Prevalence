@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace Kiwi.Prevalence.Tests
 {
     [TestFixture]
-    public class Fixture
+    public class ScratchFixture
     {
         public class Model
         {

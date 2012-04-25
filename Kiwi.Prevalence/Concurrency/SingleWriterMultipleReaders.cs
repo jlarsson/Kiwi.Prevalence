@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace Kiwi.Prevalence.Concurrency
 {
-    public class SingleWriterMultipleReaders : ISynchronization
+    public class SingleWriterMultipleReaders : ISynchronize
     {
         private readonly ReaderWriterLock _lock = new ReaderWriterLock();
 

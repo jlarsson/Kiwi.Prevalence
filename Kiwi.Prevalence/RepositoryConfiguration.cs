@@ -8,16 +8,16 @@ namespace Kiwi.Prevalence
     {
         public RepositoryConfiguration()
         {
-            QuerySerializer = new CopyResulQuerySerializer();
-            Synchronization = new SingleWriterMultipleReaders();
+            Marshal = new CopyResulMarshal();
+            Synchronize = new SingleWriterMultipleReaders();
             CommandSerializer = new CommandSerializer();
             JournalFactory = new JournalFactory();
         }
 
         #region IRepositoryConfiguration Members
 
-        public IQuerySerializer QuerySerializer { get; set; }
-        public ISynchronization Synchronization { get; set; }
+        public IMarshal Marshal { get; set; }
+        public ISynchronize Synchronize { get; set; }
         public ICommandSerializer CommandSerializer { get; set; }
         public IJournalFactory JournalFactory { get; set; }
 

@@ -9,5 +9,6 @@ namespace Kiwi.Prevalence.Journaling
         void LogCommand(ICommand command);
         TModel Restore<TModel>(IModelFactory<TModel> modelFactory);
         void SaveSnapshot<TModel>(TModel model);
+        void Purge();
     }
 }

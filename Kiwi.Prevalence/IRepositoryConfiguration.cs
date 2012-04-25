@@ -6,8 +6,8 @@ namespace Kiwi.Prevalence
 {
     public interface IRepositoryConfiguration
     {
-        IQuerySerializer QuerySerializer { get; set; }
-        ISynchronization Synchronization { get; set; }
+        IMarshal Marshal { get; set; }
+        ISynchronize Synchronize { get; set; }
         ICommandSerializer CommandSerializer { get; set; }
         IJournalFactory JournalFactory { get; set; }
     }
