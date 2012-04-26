@@ -7,7 +7,7 @@ namespace Kiwi.Prevalence
     {
         public static readonly IQueryOptions NoMarshal = new NoMarshalQueryOptions();
 
-        public class NoMarshalQueryOptions : IQueryOptions, IMarshal
+        private class NoMarshalQueryOptions : IQueryOptions, IMarshal
         {
             public IMarshal GetMarshal(IMarshal @default)
             {

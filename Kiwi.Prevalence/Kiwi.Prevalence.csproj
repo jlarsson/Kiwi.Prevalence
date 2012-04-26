@@ -61,6 +61,7 @@
     <Compile Include="IQueryOptions.cs" />
     <Compile Include="IRepository.cs" />
     <Compile Include="IRepositoryConfiguration.cs" />
+    <Compile Include="JournalCommand.cs" />
     <Compile Include="Journaling\IJournal.cs" />
     <Compile Include="Journaling\IJournalFactory.cs" />
     <Compile Include="Journaling\InterningStringConverter.cs" />
