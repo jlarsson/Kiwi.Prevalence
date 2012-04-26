@@ -65,20 +65,24 @@ namespace Kiwi.Prevalence
             }
         }
 
-        public TResult Query<TResult>(Func<TModel, TResult> query)
+        public TResult Query<TResult>(Func<TModel, TResult> query, IQueryOptions options = null)
         {
             EnsureInitialized();
-            return Synchronize.Read(() => Marshal.MarshalQueryResult(query(Model)));
+            var synchronize = (options == null ? Synchronize : options.GetSynchronize(Synchronize)) ?? Synchronize;
+            var marshal = (options == null ? Marshal : options.GetMarshal(Marshal)) ?? Marshal;
+            return synchronize.Read(() => marshal.MarshalQueryResult(query(Model)));
         }
 
-        public TResult Execute<TResult>(ICommand<TModel, TResult> command)
+        public TResult Execute<TResult>(ICommand<TModel, TResult> command, IQueryOptions options = null)
         {
             EnsureInitialized();
-            return Synchronize.Write(() =>
+            var synchronize = (options == null ? Synchronize : options.GetSynchronize(Synchronize)) ?? Synchronize;
+            var marshal = (options == null ? Marshal : options.GetMarshal(Marshal)) ?? Marshal;
+            return synchronize.Write(() =>
                                              {
                                                  var action = command.Prepare(Model);
                                                  Journal.LogCommand(command);
-                                                 return Marshal.MarshalCommandResult(action());
+                                                 return marshal.MarshalCommandResult(action());
                                              });
         }
 

@@ -40,7 +40,6 @@ namespace Kiwi.Prevalence.Journaling
                 JsonConvert.ToJson(new LogEntry
                                        {
                                            Revision = ++Revision,
-                                           CommandType = command.GetType().AssemblyQualifiedName,
                                            Command = CommandSerializer.Serialize(command)
                                        }));
             JournalWriter.Flush();
@@ -72,8 +71,7 @@ namespace Kiwi.Prevalence.Journaling
                     while (!parser.EndOfInput())
                     {
                         var entry = JsonConvert.Parse<LogEntry>(parser, null);
-                        var command = CommandSerializer.Deserialize(entry.Command,
-                                                                    new DeserializeHint {Type = entry.CommandType});
+                        var command = CommandSerializer.Deserialize(entry.Command);
 
                         command.Replay(model);
 
@@ -141,8 +139,7 @@ namespace Kiwi.Prevalence.Journaling
         public class LogEntry
         {
             public long Revision { get; set; }
-            public string CommandType { get; set; }
-            public IJsonValue Command { get; set; }
+            public JournalCommand Command { get; set; }
         }
 
         #endregion

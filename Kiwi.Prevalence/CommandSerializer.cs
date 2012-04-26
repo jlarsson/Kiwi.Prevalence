@@ -1,20 +1,23 @@
 using System;
 using Kiwi.Json;
-using Kiwi.Json.Untyped;
 
 namespace Kiwi.Prevalence
 {
     public class CommandSerializer : ICommandSerializer
     {
-        public IJsonValue Serialize(ICommand command)
+        public JournalCommand Serialize(ICommand command)
         {
-            return JsonConvert.ToJson(command);
+            return new JournalCommand()
+                       {
+                           Type = command.GetType().AssemblyQualifiedName,
+                           Command = JsonConvert.ToJson(command)
+                       };
         }
 
-        public ICommand Deserialize(IJsonValue value, DeserializeHint hint)
+        public ICommand Deserialize(JournalCommand command)
         {
-            var type = Type.GetType(hint.Type);
-            return (ICommand)value.ToObject(type);
+            var type = Type.GetType(command.Type);
+            return (ICommand)command.Command.ToObject(type);
         }
     }
 }

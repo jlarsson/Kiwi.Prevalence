@@ -2,9 +2,14 @@ using Kiwi.Json.Untyped;
 
 namespace Kiwi.Prevalence
 {
+    public class JournalCommand
+    {
+        public string Type { get; set; }
+        public IJsonValue Command { get; set; }
+    }
     public interface ICommandSerializer
     {
-        IJsonValue Serialize(ICommand command);
-        ICommand Deserialize(IJsonValue value, DeserializeHint hint);
+        JournalCommand Serialize(ICommand command);
+        ICommand Deserialize(JournalCommand command);
     }
 }

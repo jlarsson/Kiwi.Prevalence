@@ -54,11 +54,11 @@
     <Compile Include="Concurrency\ISynchronize.cs" />
     <Compile Include="Concurrency\SingleThread.cs" />
     <Compile Include="Concurrency\SingleWriterMultipleReaders.cs" />
-    <Compile Include="DeserializeHint.cs" />
     <Compile Include="ICommand.cs" />
     <Compile Include="ICommandSerializer.cs" />
     <Compile Include="IModelFactory.cs" />
     <Compile Include="IQuery.cs" />
+    <Compile Include="IQueryOptions.cs" />
     <Compile Include="IRepository.cs" />
     <Compile Include="IRepositoryConfiguration.cs" />
     <Compile Include="Journaling\IJournal.cs" />
@@ -70,6 +70,7 @@
     <Compile Include="Marshalling\IMarshal.cs" />
     <Compile Include="ModelFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QueryOptions.cs" />
     <Compile Include="Repository.cs" />
     <Compile Include="RepositoryConfiguration.cs" />
   </ItemGroup>
