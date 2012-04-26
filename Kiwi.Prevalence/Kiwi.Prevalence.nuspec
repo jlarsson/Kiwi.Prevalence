@@ -10,7 +10,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <copyright>$copyright$</copyright>
-    <tags>Prevalence Json</tags>
+    <tags>Prevalence Database In-memory</tags>
     <dependencies>
       <dependency id="Kiwi.Json" version="2.0.0.7" />
     </dependencies>
