@@ -10,6 +10,13 @@ namespace Kiwi.Prevalence
         private readonly object _initializeSync = new object();
         private string _path;
 
+        public Repository(Func<TModel> modelFactory): this(new RepositoryConfiguration(), new ModelFactory<TModel>(modelFactory))
+        {}
+
+        public Repository(IModelFactory<TModel> modelFactory) : this(new RepositoryConfiguration(), modelFactory)
+        {
+        }
+
         public Repository(
             IRepositoryConfiguration configuration,
             IModelFactory<TModel> modelFactory)
@@ -79,11 +86,11 @@ namespace Kiwi.Prevalence
             var synchronize = (options == null ? Synchronize : options.GetSynchronize(Synchronize)) ?? Synchronize;
             var marshal = (options == null ? Marshal : options.GetMarshal(Marshal)) ?? Marshal;
             return synchronize.Write(() =>
-                                             {
-                                                 var action = command.Prepare(Model);
-                                                 Journal.LogCommand(command);
-                                                 return marshal.MarshalCommandResult(action());
-                                             });
+                                         {
+                                             var action = command.Prepare(Model);
+                                             Journal.LogCommand(command);
+                                             return marshal.MarshalCommandResult(action());
+                                         });
         }
 
         public void Dispose()
@@ -96,22 +103,23 @@ namespace Kiwi.Prevalence
 
         public void SaveSnapshot()
         {
+            EnsureInitialized();
             Synchronize.Write(() =>
-                                     {
-                                         Journal.SaveSnapshot(Model);
-                                         return true;
-                                     });
+                                  {
+                                      Journal.SaveSnapshot(Model);
+                                      return true;
+                                  });
         }
 
         public void Purge()
         {
+            EnsureInitialized();
             Synchronize.Write(() =>
-                                      {
-                                          EnsureInitialized();
-                                          Journal.Purge();
-                                          Model = Journal.Restore(ModelFactory);
-                                          return true;
-                                      });
+                                  {
+                                      Journal.Purge();
+                                      Model = Journal.Restore(ModelFactory);
+                                      return true;
+                                  });
         }
 
         #endregion
@@ -127,11 +135,15 @@ namespace Kiwi.Prevalence
             {
                 lock (_initializeSync)
                 {
-                    if (Journal == null)
-                    {
-                        Journal = JournalFactory.CreateJournal(CommandSerializer, _path);
-                        Model = Journal.Restore(ModelFactory);
-                    }
+                    Synchronize.Write(() =>
+                                          {
+                                              if (Journal == null)
+                                              {
+                                                  Journal = JournalFactory.CreateJournal(CommandSerializer, _path);
+                                                  Model = Journal.Restore(ModelFactory);
+                                              }
+                                              return true;
+                                          });
                 }
             }
         }
