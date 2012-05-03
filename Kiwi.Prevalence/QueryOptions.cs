@@ -7,17 +7,11 @@ namespace Kiwi.Prevalence
     {
         public static readonly IQueryOptions NoMarshal = new NoMarshalQueryOptions();
 
+        #region Nested type: NoMarshalQueryOptions
+
         private class NoMarshalQueryOptions : IQueryOptions, IMarshal
         {
-            public IMarshal GetMarshal(IMarshal @default)
-            {
-                return this;
-            }
-
-            public ISynchronize GetSynchronize(ISynchronize @default)
-            {
-                return @default;
-            }
+            #region IMarshal Members
 
             public T MarshalQueryResult<T>(T result)
             {
@@ -28,6 +22,24 @@ namespace Kiwi.Prevalence
             {
                 return result;
             }
+
+            #endregion
+
+            #region IQueryOptions Members
+
+            public IMarshal GetMarshal(IMarshal @default)
+            {
+                return this;
+            }
+
+            public ISynchronize GetSynchronize(ISynchronize @default)
+            {
+                return @default;
+            }
+
+            #endregion
         }
+
+        #endregion
     }
 }

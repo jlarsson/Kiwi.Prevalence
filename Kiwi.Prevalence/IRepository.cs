@@ -2,7 +2,7 @@ using System;
 
 namespace Kiwi.Prevalence
 {
-    public interface IRepository<out TModel>: IDisposable
+    public interface IRepository<out TModel> : IDisposable
     {
         long SnapshotRevision { get; }
         long Revision { get; }

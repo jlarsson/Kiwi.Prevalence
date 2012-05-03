@@ -7,7 +7,7 @@ namespace Kiwi.Prevalence.Concurrency
     {
         private readonly ReaderWriterLock _lock = new ReaderWriterLock();
 
-        #region ISynchronization Members
+        #region ISynchronize Members
 
         public T Read<T>(Func<T> action)
         {

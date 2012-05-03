@@ -4,6 +4,8 @@ namespace Kiwi.Prevalence.Marshalling
 {
     public class CopyResulMarshal : IMarshal
     {
+        #region IMarshal Members
+
         public T MarshalQueryResult<T>(T result)
         {
             return JsonConvert.ToJson(result).ToObject<T>();
@@ -13,5 +15,7 @@ namespace Kiwi.Prevalence.Marshalling
         {
             return JsonConvert.ToJson(result).ToObject<T>();
         }
+
+        #endregion
     }
 }

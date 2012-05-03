@@ -8,11 +8,16 @@ namespace Kiwi.Prevalence.Tests
         private class Model
         {
         }
+
         [Test]
         public void Test()
         {
             var modelIsCreated = false;
-            using (var repo = new Repository<Model>(() => { modelIsCreated = true; return new Model(); }))
+            using (var repo = new Repository<Model>(() =>
+                                                        {
+                                                            modelIsCreated = true;
+                                                            return new Model();
+                                                        }))
             {
                 repo.Query(model =>
                                {

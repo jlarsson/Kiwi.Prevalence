@@ -34,11 +34,15 @@ namespace Kiwi.Prevalence.Tests
         [Test]
         public void Test()
         {
-            using (var repo = new Repository<Model>(new RepositoryConfiguration(),
-                                                    new ModelFactory<Model>(() => new Model()))
-                                  {
-                                      Path = "c:\\temp\\a"
-                                  }
+            using (
+                var repo =
+                    new Repository<Model>(
+                        new RepositoryConfiguration
+                            {CommandSerializer = new CommandSerializer().WithTypeAlias<AddUserCommand>("addUser")},
+                        new ModelFactory<Model>(() => new Model()))
+                        {
+                            Path = "c:\\temp\\a"
+                        }
                 )
             {
                 for (var i = 0; i < 500001; ++i)

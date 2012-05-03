@@ -1,7 +1,6 @@
 using System.IO;
 using Kiwi.Json;
 using Kiwi.Json.Conversion;
-using Kiwi.Json.Untyped;
 
 namespace Kiwi.Prevalence.Journaling
 {

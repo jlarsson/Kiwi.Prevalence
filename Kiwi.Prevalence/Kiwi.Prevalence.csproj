@@ -54,6 +54,7 @@
     <Compile Include="Concurrency\ISynchronize.cs" />
     <Compile Include="Concurrency\SingleThread.cs" />
     <Compile Include="Concurrency\SingleWriterMultipleReaders.cs" />
+    <Compile Include="Error.cs" />
     <Compile Include="ICommand.cs" />
     <Compile Include="ICommandSerializer.cs" />
     <Compile Include="IModelFactory.cs" />

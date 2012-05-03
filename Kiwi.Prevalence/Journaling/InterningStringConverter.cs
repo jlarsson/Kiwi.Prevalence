@@ -8,23 +8,38 @@ namespace Kiwi.Prevalence.Journaling
 {
     public class InterningStringConverter : IJsonConverter
     {
-        readonly Dictionary<string,string> _interned = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _interned = new Dictionary<string, string>();
+
+        #region IJsonConverter Members
+
         public ITypeBuilder CreateTypeBuilder(Type type)
         {
-            if (type == typeof(string))
+            if (type == typeof (string))
             {
                 return new StringTypeBuilder(_interned);
             }
             return null;
         }
 
+        public ITypeWriter CreateTypeWriter(Type type)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
+
+        #region Nested type: StringTypeBuilder
+
         public class StringTypeBuilder : ITypeBuilder
         {
             private readonly Dictionary<string, string> _interned;
+
             public StringTypeBuilder(Dictionary<string, string> interned)
             {
                 _interned = interned;
             }
+
+            #region ITypeBuilder Members
 
             public IArrayBuilder CreateArrayBuilder(ITypeBuilderRegistry registry)
             {
@@ -67,15 +82,14 @@ namespace Kiwi.Prevalence.Journaling
                 if (!_interned.TryGetValue(value, out interned))
                 {
                     interned = value;
-                    _interned.Add(value,interned);
+                    _interned.Add(value, interned);
                 }
                 return interned;
             }
+
+            #endregion
         }
 
-        public ITypeWriter CreateTypeWriter(Type type)
-        {
-            throw new NotImplementedException();
-        }
+        #endregion
     }
 }

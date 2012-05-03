@@ -6,7 +6,7 @@ namespace Kiwi.Prevalence.Concurrency
     {
         private readonly object _sync = new object();
 
-        #region ISynchronization Members
+        #region ISynchronize Members
 
         public T Read<T>(Func<T> action)
         {

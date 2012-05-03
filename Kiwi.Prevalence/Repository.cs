@@ -10,8 +10,10 @@ namespace Kiwi.Prevalence
         private readonly object _initializeSync = new object();
         private string _path;
 
-        public Repository(Func<TModel> modelFactory): this(new RepositoryConfiguration(), new ModelFactory<TModel>(modelFactory))
-        {}
+        public Repository(Func<TModel> modelFactory)
+            : this(new RepositoryConfiguration(), new ModelFactory<TModel>(modelFactory))
+        {
+        }
 
         public Repository(IModelFactory<TModel> modelFactory) : this(new RepositoryConfiguration(), modelFactory)
         {
