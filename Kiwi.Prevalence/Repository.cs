@@ -52,7 +52,7 @@ namespace Kiwi.Prevalence
         public IMarshal Marshal { get; protected set; }
         public ISynchronize Synchronize { get; protected set; }
 
-        public TModel Model { get; protected set; }
+        protected TModel Model { get; set; }
 
         #region IRepository<TModel> Members
 
