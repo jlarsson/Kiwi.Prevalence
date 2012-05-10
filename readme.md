@@ -1,6 +1,6 @@
 # Kiwi.Prevalance ##
 Kiwi.Prevalance is a .NET [System Prevalence Layer](http://en.wikipedia.org/wiki/System_Prevalence).
-As such, it maintains an application model in memory, providing gated access to ensure consistency and journalling to provide persietence and durability.
+As such, it maintains an application model in memory, providing gated access to ensure consistency and journalling to provide persistence and durability.
 
 ## License 
 
@@ -25,13 +25,13 @@ Modyfying operations are taken out by _Repository&lt;TModel&gt;::Query(command)_
 To further protect the model, results from either _Query_ or _Execute_ is _marshalled_, which in this contect means that a deep copy of the result is taken. This guarantess that the results are detached from the model, preventing nasty concurrency bugs.
 
 ## Snapshots
-A snapshot is the model serialized to disk. A snapshot in essence captures the model state in a given point in time.
+A snapshot is the model serialized to disk. A snapshot in essence captures the model state at a given point in time.
 
 ## Journalling
-All commands must be Json-serializable and are captured in a journal file. Whenever a respository is restored (typically during application startup), the journal is replayed on the current snapshot to catch up with latest changes in the model.
+All commands must be Json-serializable and are captured in a journal file. Whenever a repository is restored (typically during application startup), the journal is replayed on the current snapshot to catch up with latest changes in the model.
 
 ## Serialization
-The model and all commands must be JSON-serializable and JSON-deserializable.
+The model and all commands must be Json-serializable and Json-deserializable.
 
 * The JSON format somewhat limits the expressiveness of your model. In particular, it may not contain cycles.
 * The JSON format is chosen since its so forgiving and most of all, human and machine readable.
@@ -48,17 +48,17 @@ Expect to find some or all of these files
 
 ## Performance tuning
 ### Parametrized instantiation
-The _Repository_ class takes most strategic decisions from a _IRepositoryConfiguration_. A custom implmentation (or instantiation of the default) allows customization of 
+The _Repository_ class takes most strategic decisions from a _IRepositoryConfiguration_. A custom implementation (or instantiation of the default) allows customization of 
 * Command serialization (the format used in the journal)
 * Marshalling
 * Synchronization
 
-Each of the above strategies are quite small abstractions and should be fairly easy to implement if a non-defautl behaviour is wanted.
+Each of the above strategies are quite small abstractions and should be fairly easy to implement if a non-default behaviour is wanted.
 
 ### Skip marshalling
-For applications where the model can't be compromised by pusblishing results from _Query_ or _Execute_, an additional parameter _QueryOptions.NoMarshall_ can be supplied that effectively skips the marshalling step all together.
+For applications where the model isn't at risk of being compromised by pusblishing results from _Query_ or _Execute_, an additional parameter _QueryOptions.NoMarshall_ can be supplied that effectively skips the marshalling step all together.
 ### Custom marshalling
-Since marshalling doesn't affect persietence in the journal or snapshot in any way, it's possible to setup a repository with a custom marshaller (say one based on _BinaryFormatter_, allowing cycles in the data).
+Since marshalling doesn't affect persistence in the journal or snapshot in any way, it's possible to setup a repository with a custom marshaller (say one based on _BinaryFormatter_, allowing cycles in the data).
 ### Custom synchronization
 The default synchronization uses _System.Threading.ReaderWriterLock_, but other schemes can be specified by passing a custom _ISynchronize_ instance to the repository.
 
