@@ -23,6 +23,7 @@ namespace Kiwi.Prevalence
             IRepositoryConfiguration configuration,
             IModelFactory<TModel> modelFactory)
         {
+            _path = "model";
             ModelFactory = modelFactory;
             CommandSerializer = configuration.CommandSerializer;
             JournalFactory = configuration.JournalFactory;
