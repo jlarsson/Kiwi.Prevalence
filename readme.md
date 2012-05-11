@@ -62,5 +62,8 @@ Since marshalling doesn't affect persistence in the journal or snapshot in any w
 ### Custom synchronization
 The default synchronization uses _System.Threading.ReaderWriterLock_, but other schemes can be specified by passing a custom _ISynchronize_ instance to the repository.
 
-## What if I think this is #¤!&?
-In that case, there are some similar software packages. Personally, I can recommend [#livedb](http://livedb.devrex.se/).
+## What if I think prevalence is better than sliced bread but dislike this particual implementation?
+* Fork and patch, fork and patch...
+* or, use another library. Personally, I can recommend [#livedb](http://livedb.devrex.se/).
+* or, if you rather roll your own, use our code as inspiration or
+* or, start from this [minimal implementation](https://gist.github.com/1103582) provided by by one of the early driving forces, [Klaus Wuestefeld](https://github.com/klauswuestefeld).
