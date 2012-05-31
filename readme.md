@@ -15,9 +15,9 @@ For a formal specification, checkout the [MIT licence](http://www.opensource.org
 The application model is mainatined by a _Repository&lt;TModel&gt;_ which owns an instance of your preferred model,  _TModel_.
 
 ## Gated access
-To maintain model consistency over time, its not allowed to interact directly with the model. Instead, the methods  _Repository&lt;TModel&gt;::Query(lambda)_ and  _Repository&lt;TModel&gt;::Execute(command)_ must be used.
+To maintain model consistency over time, its not allowed to interact directly with the model. Instead, the methods  _Repository&lt;TModel&gt;::Query(&lambda;)_ and  _Repository&lt;TModel&gt;::Execute(command)_ must be used.
 ### Synchronization
-_Repository&lt;TModel&gt;::Qyery(lambda)_ ensures that your lambda (on the form _Func&lt;TModel,TResult&gt;_) can access the model in assumed read-only mode (a read lock is taken).
+_Repository&lt;TModel&gt;::Qyery(&lambda;)_ ensures that your &lambda; (on the form _Func&lt;TModel,TResult&gt;_) can access the model in assumed read-only mode (a read lock is taken).
 
 Modyfying operations are taken out by _Repository&lt;TModel&gt;::Query(command)_ where the command must implement _ICommand&lt;TModel,TResult&gt;_ and is executed in exclusive-write mode (a write lock is taken). 
 
