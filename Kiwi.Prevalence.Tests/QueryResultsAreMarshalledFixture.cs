@@ -1,3 +1,4 @@
+using System.IO;
 using Kiwi.Prevalence.Marshalling;
 using NUnit.Framework;
 

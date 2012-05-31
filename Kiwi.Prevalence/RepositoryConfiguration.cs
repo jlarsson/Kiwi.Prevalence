@@ -12,6 +12,7 @@ namespace Kiwi.Prevalence
             Synchronize = new SingleWriterMultipleReaders();
             CommandSerializer = new CommandSerializer();
             JournalFactory = new JournalFactory();
+            SnapshotArchiver = new DeleteArchivedSnapshots();
         }
 
         #region IRepositoryConfiguration Members
@@ -20,6 +21,7 @@ namespace Kiwi.Prevalence
         public ISynchronize Synchronize { get; set; }
         public ICommandSerializer CommandSerializer { get; set; }
         public IJournalFactory JournalFactory { get; set; }
+        public ISnapshotArchiver SnapshotArchiver { get; set; }
 
         #endregion
     }

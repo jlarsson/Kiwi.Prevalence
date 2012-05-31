@@ -1,7 +1,5 @@
 using System;
-using Kiwi.Prevalence.Concurrency;
 using Kiwi.Prevalence.Journaling;
-using Kiwi.Prevalence.Marshalling;
 
 namespace Kiwi.Prevalence
 {
@@ -24,16 +22,23 @@ namespace Kiwi.Prevalence
             IModelFactory<TModel> modelFactory)
         {
             _path = "model";
+
+            Configuration = new RepositoryConfiguration
+                                {
+                                    CommandSerializer = configuration.CommandSerializer,
+                                    JournalFactory = configuration.JournalFactory,
+                                    Marshal = configuration.Marshal,
+                                    SnapshotArchiver = configuration.SnapshotArchiver,
+                                    Synchronize = configuration.Synchronize
+                                };
+
+
             ModelFactory = modelFactory;
-            CommandSerializer = configuration.CommandSerializer;
-            JournalFactory = configuration.JournalFactory;
-            Marshal = configuration.Marshal;
-            Synchronize = configuration.Synchronize;
         }
 
-        public IModelFactory<TModel> ModelFactory { get; set; }
+        public IRepositoryConfiguration Configuration { get; private set; }
 
-        public IJournalFactory JournalFactory { get; protected set; }
+        public IModelFactory<TModel> ModelFactory { get; set; }
 
         public string Path
         {
@@ -48,10 +53,7 @@ namespace Kiwi.Prevalence
             }
         }
 
-        public ICommandSerializer CommandSerializer { get; protected set; }
         public IJournal Journal { get; protected set; }
-        public IMarshal Marshal { get; protected set; }
-        public ISynchronize Synchronize { get; protected set; }
 
         protected TModel Model { get; set; }
 
@@ -78,16 +80,16 @@ namespace Kiwi.Prevalence
         public TResult Query<TResult>(Func<TModel, TResult> query, IQueryOptions options = null)
         {
             EnsureInitialized();
-            var synchronize = (options == null ? Synchronize : options.GetSynchronize(Synchronize)) ?? Synchronize;
-            var marshal = (options == null ? Marshal : options.GetMarshal(Marshal)) ?? Marshal;
+            var synchronize = (options == null ? Configuration.Synchronize : options.GetSynchronize(Configuration.Synchronize)) ?? Configuration.Synchronize;
+            var marshal = (options == null ? Configuration.Marshal : options.GetMarshal(Configuration.Marshal)) ?? Configuration.Marshal;
             return synchronize.Read(() => marshal.MarshalQueryResult(query(Model)));
         }
 
         public TResult Execute<TResult>(ICommand<TModel, TResult> command, IQueryOptions options = null)
         {
             EnsureInitialized();
-            var synchronize = (options == null ? Synchronize : options.GetSynchronize(Synchronize)) ?? Synchronize;
-            var marshal = (options == null ? Marshal : options.GetMarshal(Marshal)) ?? Marshal;
+            var synchronize = (options == null ? Configuration.Synchronize : options.GetSynchronize(Configuration.Synchronize)) ?? Configuration.Synchronize;
+            var marshal = (options == null ? Configuration.Marshal : options.GetMarshal(Configuration.Marshal)) ?? Configuration.Marshal;
             return synchronize.Write(() =>
                                          {
                                              var action = command.Prepare(Model);
@@ -107,7 +109,7 @@ namespace Kiwi.Prevalence
         public void SaveSnapshot()
         {
             EnsureInitialized();
-            Synchronize.Write(() =>
+            Configuration.Synchronize.Write(() =>
                                   {
                                       Journal.SaveSnapshot(Model);
                                       return true;
@@ -117,7 +119,7 @@ namespace Kiwi.Prevalence
         public void Purge()
         {
             EnsureInitialized();
-            Synchronize.Write(() =>
+            Configuration.Synchronize.Write(() =>
                                   {
                                       Journal.Purge();
                                       Model = Journal.Restore(ModelFactory);
@@ -138,11 +140,11 @@ namespace Kiwi.Prevalence
             {
                 lock (_initializeSync)
                 {
-                    Synchronize.Write(() =>
+                    Configuration.Synchronize.Write(() =>
                                           {
                                               if (Journal == null)
                                               {
-                                                  Journal = JournalFactory.CreateJournal(CommandSerializer, _path);
+                                                  Journal = Configuration.JournalFactory.CreateJournal(Configuration, _path);
                                                   Model = Journal.Restore(ModelFactory);
                                               }
                                               return true;

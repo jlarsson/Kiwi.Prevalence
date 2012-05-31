@@ -10,5 +10,6 @@ namespace Kiwi.Prevalence
         ISynchronize Synchronize { get; set; }
         ICommandSerializer CommandSerializer { get; set; }
         IJournalFactory JournalFactory { get; set; }
+        ISnapshotArchiver SnapshotArchiver { get; set; }
     }
 }

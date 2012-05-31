@@ -16,6 +16,7 @@ namespace Kiwi.Prevalence
             return new JournalCommand
                        {
                            Type = GetTypeAlias(command.GetType()),
+                           Time = DateTime.Now,
                            Command = JsonConvert.ToJson(command)
                        };
         }

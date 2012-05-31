@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 using Kiwi.Json;
 using Kiwi.Json.Conversion;
@@ -6,20 +8,19 @@ namespace Kiwi.Prevalence.Journaling
 {
     public class Journal : IJournal
     {
-        public Journal(ICommandSerializer commandSerializer, string path)
+        public Journal(IRepositoryConfiguration configuration, string path)
         {
             BasePath = path;
             JournalPath = path + ".journal";
             SnapshotPath = path + ".snapshot";
-            CommandSerializer = commandSerializer;
+            Configuration = configuration;
         }
 
-        protected string SnapshotPath { get; set; }
-
+        public IRepositoryConfiguration Configuration { get; private set; }
+        public TextWriter JournalWriter { get; protected set; }
         public string BasePath { get; set; }
         public string JournalPath { get; private set; }
-        public TextWriter JournalWriter { get; protected set; }
-        public ICommandSerializer CommandSerializer { get; protected set; }
+        public string SnapshotPath { get; set; }
 
         #region IJournal Members
 
@@ -39,7 +40,7 @@ namespace Kiwi.Prevalence.Journaling
                 JsonConvert.ToJson(new LogEntry
                                        {
                                            Revision = ++Revision,
-                                           Command = CommandSerializer.Serialize(command)
+                                           Command = Configuration.CommandSerializer.Serialize(command)
                                        }));
             JournalWriter.Flush();
         }
@@ -70,7 +71,7 @@ namespace Kiwi.Prevalence.Journaling
                     while (!parser.EndOfInput())
                     {
                         var entry = JsonConvert.Parse<LogEntry>(parser, null);
-                        var command = CommandSerializer.Deserialize(entry.Command);
+                        var command = Configuration.CommandSerializer.Deserialize(entry.Command);
 
                         command.Replay(model);
 
@@ -91,20 +92,30 @@ namespace Kiwi.Prevalence.Journaling
             }
 
             var snapshot = new StringWriter();
-            snapshot.Write(JsonConvert.Write(new Snapshot<TModel> {Revision = Revision, Model = model}));
+            snapshot.Write(JsonConvert.Write(new Snapshot<TModel> {Revision = Revision, Time = DateTime.Now, Model = model}));
 
+            var archivedFilePaths = new List<string>();
             if (File.Exists(SnapshotPath))
             {
-                File.Copy(SnapshotPath, SnapshotPath + "." + Revision);
+                var snapshotArchivePath = SnapshotPath + "." + Revision;
+                File.Copy(SnapshotPath, snapshotArchivePath);
+                archivedFilePaths.Add(snapshotArchivePath);
             }
             if (File.Exists(JournalPath))
             {
-                File.Copy(JournalPath, JournalPath + "." + Revision);
+                var journalArchivePath = JournalPath + "." + Revision;
+                File.Copy(JournalPath, journalArchivePath);
+                archivedFilePaths.Add(journalArchivePath);
             }
 
             File.WriteAllText(JournalPath, "");
             File.WriteAllText(SnapshotPath, snapshot.ToString());
 
+            Configuration.SnapshotArchiver.Archive(new SnapshotArchiveInfo()
+                                                       {
+                                                           ArchivedFilePaths = archivedFilePaths
+                                                       }
+                );
             SnapshotRevision = Revision;
         }
 
@@ -148,6 +159,7 @@ namespace Kiwi.Prevalence.Journaling
         public class Snapshot<TModel>
         {
             public long Revision { get; set; }
+            public DateTime Time { get; set; }
             public TModel Model { get; set; }
         }
 
