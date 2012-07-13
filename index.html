@@ -1,0 +1,144 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Kiwi.Prevalence by jlarsson</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <header>
+        <h1>Kiwi.Prevalence</h1>
+        <p>Refactoring safe System Prevalence for .Net</p>
+      </header>
+
+      <div id="banner">
+        <span id="logo"></span>
+
+        <a href="https://github.com/jlarsson/Kiwi.Prevalence" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/jlarsson/Kiwi.Prevalence/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/jlarsson/Kiwi.Prevalence/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        <h1>Kiwi.Prevalance</h1>
+
+<p>Kiwi.Prevalance is a .NET <a href="http://en.wikipedia.org/wiki/System_Prevalence">System Prevalence Layer</a>.
+As such, it maintains an application model in memory, providing gated access to ensure consistency and journalling to provide persistence and durability.</p>
+
+<h2>License</h2>
+
+<p>Quite simple, use this without restrictions, but don't blame us. 
+For a formal specification, checkout the <a href="http://www.opensource.org/licenses/mit-license.php">MIT licence</a>.</p>
+
+<h2>Prerequisites</h2>
+
+<ul>
+<li>requires .NET 4.</li>
+<li>best downloaded from <a href="http://nuget.org/packages/Kiwi.Prevalence">nuget</a>
+</li>
+</ul><h2>The model</h2>
+
+<p>The application model is mainatined by a <em>Repository&lt;TModel&gt;</em> which owns an instance of your preferred model,  <em>TModel</em>.</p>
+
+<h2>Gated access</h2>
+
+<p>To maintain model consistency over time, its not allowed to interact directly with the model. Instead, the methods  <em>Repository&lt;TModel&gt;::Query(λ)</em> and  <em>Repository&lt;TModel&gt;::Execute(command)</em> must be used.</p>
+
+<h3>Synchronization</h3>
+
+<p><em>Repository&lt;TModel&gt;::Qyery(λ)</em> ensures that your λ (on the form <em>Func&lt;TModel,TResult&gt;</em>) can access the model in assumed read-only mode (a read lock is taken).</p>
+
+<p>Modyfying operations are taken out by <em>Repository&lt;TModel&gt;::Query(command)</em> where the command must implement <em>ICommand&lt;TModel,TResult&gt;</em> and is executed in exclusive-write mode (a write lock is taken). </p>
+
+<h3>Marshalling</h3>
+
+<p>To further protect the model, results from either <em>Query</em> or <em>Execute</em> is <em>marshalled</em>, which in this contect means that a deep copy of the result is taken. This guarantess that the results are detached from the model, preventing nasty concurrency bugs.</p>
+
+<h2>Snapshots</h2>
+
+<p>A snapshot is the model serialized to disk. A snapshot in essence captures the model state at a given point in time.</p>
+
+<h2>Journalling</h2>
+
+<p>All commands must be Json-serializable and are captured in a journal file. Whenever a repository is restored (typically during application startup), the journal is replayed on the current snapshot to catch up with latest changes in the model.</p>
+
+<h2>Serialization</h2>
+
+<p>The model and all commands must be Json-serializable and Json-deserializable.</p>
+
+<ul>
+<li>The JSON format somewhat limits the expressiveness of your model. In particular, it may not contain cycles.</li>
+<li>The JSON format is chosen since its so forgiving and most of all, human and machine readable.</li>
+</ul><p>Actual serialization is carried out by <a href="https://github.com/jlarsson/Kiwi.Json">Kiwi.Json</a>.</p>
+
+<h2>Persistence</h2>
+
+<p>In few words - JSON serialized to disk files.
+Expect to find some or all of these files</p>
+
+<ul>
+<li>&lt;repo name&gt;.journal - contains JSON-serialized commands</li>
+<li>&lt;repo name&gt;.snapshot - contains a JSON-serialized model</li>
+<li>&lt;repo name&gt;.journal.&lt;revision&gt; - backup of journal taken at a specific journal revision</li>
+<li>&lt;repo name&gt;.snapshot.&lt;revision&gt; - backup of snapshot taken at a specific journal revision</li>
+</ul><h2>Performance tuning</h2>
+
+<h3>Parametrized instantiation</h3>
+
+<p>The <em>Repository</em> class takes most strategic decisions from a <em>IRepositoryConfiguration</em>. A custom implementation (or instantiation of the default) allows customization of </p>
+
+<ul>
+<li>Command serialization (the format used in the journal)</li>
+<li>Marshalling</li>
+<li>Synchronization</li>
+</ul><p>Each of the above strategies are quite small abstractions and should be fairly easy to implement if a non-default behaviour is wanted.</p>
+
+<h3>Skip marshalling</h3>
+
+<p>For applications where the model isn't at risk of being compromised by pusblishing results from <em>Query</em> or <em>Execute</em>, an additional parameter <em>QueryOptions.NoMarshall</em> can be supplied that effectively skips the marshalling step all together.</p>
+
+<h3>Custom marshalling</h3>
+
+<p>Since marshalling doesn't affect persistence in the journal or snapshot in any way, it's possible to setup a repository with a custom marshaller (say one based on <em>BinaryFormatter</em>, allowing cycles in the data).</p>
+
+<h3>Custom synchronization</h3>
+
+<p>The default synchronization uses <em>System.Threading.ReaderWriterLock</em>, but other schemes can be specified by passing a custom <em>ISynchronize</em> instance to the repository.</p>
+
+<h2>What if I think prevalence is better than sliced bread but dislike this particular implementation?</h2>
+
+<ul>
+<li>Fork and patch, fork and patch...</li>
+<li>or, use another library. Personally, I can recommend <a href="http://livedb.devrex.se/">#livedb</a>.</li>
+<li>or, if you rather roll your own, use our code as inspiration or</li>
+<li>or, start from this <a href="https://gist.github.com/1103582">minimal implementation</a> provided by by one of the early driving forces, <a href="https://github.com/klauswuestefeld">Klaus Wuestefeld</a>.</li>
+</ul>
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/jlarsson">jlarsson</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><!--<![endif]-->
+    
+  </body>
+</html>
