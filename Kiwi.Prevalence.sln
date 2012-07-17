@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kiwi.Prevalence.Tests", "Ki
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C0816442-A188-4302-8015-6C0F17A7E53F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yoyyin.Prevalence", "..\Yoyyin\Yoyyin.Prevalence\Yoyyin.Prevalence.csproj", "{51B0D69C-28EA-45C8-B4BB-FDD199A723D7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yoyyin.Prevalence.Tests", "..\Yoyyin\Yoyyin.Prevalence.Tests\Yoyyin.Prevalence.Tests.csproj", "{424E6770-20EE-412F-B9B7-8C1FEB17088C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{14690C45-453C-4ADA-9AF8-7AE2308FACEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14690C45-453C-4ADA-9AF8-7AE2308FACEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{14690C45-453C-4ADA-9AF8-7AE2308FACEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51B0D69C-28EA-45C8-B4BB-FDD199A723D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51B0D69C-28EA-45C8-B4BB-FDD199A723D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51B0D69C-28EA-45C8-B4BB-FDD199A723D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51B0D69C-28EA-45C8-B4BB-FDD199A723D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{424E6770-20EE-412F-B9B7-8C1FEB17088C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{424E6770-20EE-412F-B9B7-8C1FEB17088C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{424E6770-20EE-412F-B9B7-8C1FEB17088C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{424E6770-20EE-412F-B9B7-8C1FEB17088C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
