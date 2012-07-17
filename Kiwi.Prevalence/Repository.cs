@@ -1,63 +1,102 @@
 using System;
-using Kiwi.Prevalence.Concurrency;
 using Kiwi.Prevalence.Journaling;
-using Kiwi.Prevalence.Marshalling;
 
 namespace Kiwi.Prevalence
 {
-    public class Repository<TModel> : IRepository<TModel> where TModel : new()
+    public class Repository<TModel> : IRepository<TModel>
     {
-        public Repository(RepositoryConfiguration configuration)
-        {
-            CommandSerializer = configuration.CommandSerializer;
-            Journal = configuration.JournalFactory.CreateJournal(configuration);
-            QuerySerializer = configuration.QuerySerializer;
-            Synchronization = configuration.Synchronization;
+        private readonly object _initializeSync = new object();
+        private string _path;
 
-            Model = Journal.Restore<TModel>();
+        public Repository(Func<TModel> modelFactory)
+            : this(new RepositoryConfiguration(), new ModelFactory<TModel>(modelFactory))
+        {
         }
 
-        public ICommandSerializer CommandSerializer { get; set; }
-        public IJournal Journal { get; set; }
-        public IQuerySerializer QuerySerializer { get; set; }
-        public ISynchronization Synchronization { get; set; }
+        public Repository(IModelFactory<TModel> modelFactory) : this(new RepositoryConfiguration(), modelFactory)
+        {
+        }
+
+        public Repository(
+            IRepositoryConfiguration configuration,
+            IModelFactory<TModel> modelFactory)
+        {
+            _path = "model";
+
+            Configuration = new RepositoryConfiguration
+                                {
+                                    CommandSerializer = configuration.CommandSerializer,
+                                    JournalFactory = configuration.JournalFactory,
+                                    Marshal = configuration.Marshal,
+                                    SnapshotArchiver = configuration.SnapshotArchiver,
+                                    Synchronize = configuration.Synchronize
+                                };
+
+
+            ModelFactory = modelFactory;
+        }
+
+        public IRepositoryConfiguration Configuration { get; private set; }
+
+        public IModelFactory<TModel> ModelFactory { get; set; }
+
+        public string Path
+        {
+            get { return _path; }
+            set
+            {
+                if (IsInitialized())
+                {
+                    throw new ApplicationException("Path cannot be changed after a repository is initialized");
+                }
+                _path = System.IO.Path.GetFullPath(value);
+            }
+        }
+
+        public IJournal Journal { get; protected set; }
+
+        protected TModel Model { get; set; }
 
         #region IRepository<TModel> Members
 
-        public TModel Model { get; protected set; }
-
         public long SnapshotRevision
         {
-            get { return Journal.SnapshotRevision;  }
+            get
+            {
+                EnsureInitialized();
+                return Journal.SnapshotRevision;
+            }
         }
 
         public long Revision
         {
-            get { return Journal.Revision; }
+            get
+            {
+                EnsureInitialized();
+                return Journal.Revision;
+            }
         }
 
-        public TResult Query<TResult>(Func<TModel, TResult> query)
+        public TResult Query<TResult>(Func<TModel, TResult> query, IQueryOptions options = null)
         {
-            return Synchronization.Read(() => QuerySerializer.MarshallQueryResult(query(Model)));
+            EnsureInitialized();
+            var synchronize = (options == null ? Configuration.Synchronize : options.GetSynchronize(Configuration.Synchronize)) ?? Configuration.Synchronize;
+            var marshal = (options == null ? Configuration.Marshal : options.GetMarshal(Configuration.Marshal)) ?? Configuration.Marshal;
+            return synchronize.Read(() => marshal.MarshalQueryResult(query(Model)));
         }
 
-        public TResult Execute<TResult>(ICommand<TModel, TResult> command)
+        public TResult Execute<TResult>(ICommand<TModel, TResult> command, IQueryOptions options = null)
         {
-            return Synchronization.Write(() =>
-                                             {
-                                                 var action = command.Prepare(Model);
-                                                 Journal.LogCommand(command);
-
-                                                 //if ((Journal.SequenceNumber % 10) == 0)
-                                                 //{
-                                                 //    Journal.SaveSnapshot(Model);
-                                                 //}
-
-                                                 return QuerySerializer.MarshallCommandResult(action());
-                                             });
+            EnsureInitialized();
+            var synchronize = (options == null ? Configuration.Synchronize : options.GetSynchronize(Configuration.Synchronize)) ?? Configuration.Synchronize;
+            var marshal = (options == null ? Configuration.Marshal : options.GetMarshal(Configuration.Marshal)) ?? Configuration.Marshal;
+            return synchronize.Write(() =>
+                                         {
+                                             var action = command.Prepare(Model);
+                                             Journal.LogCommand(command);
+                                             return marshal.MarshalCommandResult(action());
+                                         });
         }
-
-        #endregion
 
         public void Dispose()
         {
@@ -69,11 +108,49 @@ namespace Kiwi.Prevalence
 
         public void SaveSnapshot()
         {
-            Synchronization.Read(() =>
-                                     {
-                                         Journal.SaveSnapshot(Model);
-                                         return true;
-                                     });
+            EnsureInitialized();
+            Configuration.Synchronize.Write(() =>
+                                  {
+                                      Journal.SaveSnapshot(Model);
+                                      return true;
+                                  });
+        }
+
+        public void Purge()
+        {
+            EnsureInitialized();
+            Configuration.Synchronize.Write(() =>
+                                  {
+                                      Journal.Purge();
+                                      Model = Journal.Restore(ModelFactory);
+                                      return true;
+                                  });
+        }
+
+        #endregion
+
+        private bool IsInitialized()
+        {
+            return Journal != null;
+        }
+
+        private void EnsureInitialized()
+        {
+            if (Journal == null)
+            {
+                lock (_initializeSync)
+                {
+                    Configuration.Synchronize.Write(() =>
+                                          {
+                                              if (Journal == null)
+                                              {
+                                                  Journal = Configuration.JournalFactory.CreateJournal(Configuration, _path);
+                                                  Model = Journal.Restore(ModelFactory);
+                                              }
+                                              return true;
+                                          });
+                }
+            }
         }
     }
 }

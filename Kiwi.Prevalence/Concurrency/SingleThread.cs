@@ -2,13 +2,15 @@ using System;
 
 namespace Kiwi.Prevalence.Concurrency
 {
-    public class SingleThread : ISynchronization
+    public class SingleThread : ISynchronize
     {
         private readonly object _sync = new object();
 
+        #region ISynchronize Members
+
         public T Read<T>(Func<T> action)
         {
-            lock(_sync)
+            lock (_sync)
             {
                 return action();
             }
@@ -21,5 +23,7 @@ namespace Kiwi.Prevalence.Concurrency
                 return action();
             }
         }
+
+        #endregion
     }
 }

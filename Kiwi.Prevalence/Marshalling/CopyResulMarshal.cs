@@ -2,16 +2,20 @@ using Kiwi.Json;
 
 namespace Kiwi.Prevalence.Marshalling
 {
-    public class CopyResulQuerySerializer : IQuerySerializer
+    public class CopyResultMarshal : IMarshal
     {
-        public T MarshallQueryResult<T>(T result)
+        #region IMarshal Members
+
+        public T MarshalQueryResult<T>(T result)
         {
             return JsonConvert.ToJson(result).ToObject<T>();
         }
 
-        public T MarshallCommandResult<T>(T result)
+        public T MarshalCommandResult<T>(T result)
         {
             return JsonConvert.ToJson(result).ToObject<T>();
         }
+
+        #endregion
     }
 }

@@ -2,14 +2,11 @@ using System;
 
 namespace Kiwi.Prevalence
 {
-    public class AbstractCommand<TModel, TResult> : ICommand<TModel, TResult>
+    public abstract class AbstractCommand<TModel, TResult> : ICommand<TModel, TResult>
     {
         #region ICommand<TModel,TResult> Members
 
-        public virtual Func<TResult> Prepare(TModel model)
-        {
-            throw new NotImplementedException();
-        }
+        public abstract Func<TResult> Prepare(TModel model);
 
         public virtual void Replay(object model)
         {

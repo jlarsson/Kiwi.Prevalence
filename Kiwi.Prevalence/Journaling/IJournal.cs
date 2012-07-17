@@ -7,7 +7,8 @@ namespace Kiwi.Prevalence.Journaling
         long Revision { get; }
         long SnapshotRevision { get; }
         void LogCommand(ICommand command);
-        TModel Restore<TModel>() where TModel : new();
+        TModel Restore<TModel>(IModelFactory<TModel> modelFactory);
         void SaveSnapshot<TModel>(TModel model);
+        void Purge();
     }
 }

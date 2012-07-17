@@ -2,6 +2,6 @@ namespace Kiwi.Prevalence.Journaling
 {
     public interface IJournalFactory
     {
-        IJournal CreateJournal(RepositoryConfiguration configuration);
+        IJournal CreateJournal(IRepositoryConfiguration configuration, string path);
     }
 }

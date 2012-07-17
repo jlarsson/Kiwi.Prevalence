@@ -4,21 +4,25 @@ using Kiwi.Prevalence.Marshalling;
 
 namespace Kiwi.Prevalence
 {
-    public class RepositoryConfiguration
+    public class RepositoryConfiguration : IRepositoryConfiguration
     {
-        public RepositoryConfiguration(string basePath)
+        public RepositoryConfiguration()
         {
-            BasePath = basePath;
-            QuerySerializer = new CopyResulQuerySerializer();
-            Synchronization = new SingleThread();
+            Marshal = new CopyResulMarshal();
+            Synchronize = new SingleWriterMultipleReaders();
             CommandSerializer = new CommandSerializer();
             JournalFactory = new JournalFactory();
+            SnapshotArchiver = new DeleteArchivedSnapshots();
         }
 
-        public string BasePath { get; set; }
-        public IQuerySerializer QuerySerializer { get; set; }
-        public ISynchronization Synchronization { get; set; }
+        #region IRepositoryConfiguration Members
+
+        public IMarshal Marshal { get; set; }
+        public ISynchronize Synchronize { get; set; }
         public ICommandSerializer CommandSerializer { get; set; }
         public IJournalFactory JournalFactory { get; set; }
+        public ISnapshotArchiver SnapshotArchiver { get; set; }
+
+        #endregion
     }
 }
