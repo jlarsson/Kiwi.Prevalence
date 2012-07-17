@@ -68,8 +68,9 @@
     <Compile Include="Journaling\Journal.cs" />
     <Compile Include="Journaling\JournalFactory.cs" />
     <Compile Include="Journaling\SnapshotArchiveInfo.cs" />
-    <Compile Include="Marshalling\CopyResulMarshal.cs" />
+    <Compile Include="Marshalling\CopyResultMarshal.cs" />
     <Compile Include="Marshalling\IMarshal.cs" />
+    <Compile Include="Marshalling\NoMarshal.cs" />
     <Compile Include="ModelFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueryOptions.cs" />

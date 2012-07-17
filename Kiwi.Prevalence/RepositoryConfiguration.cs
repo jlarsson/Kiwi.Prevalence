@@ -8,7 +8,7 @@ namespace Kiwi.Prevalence
     {
         public RepositoryConfiguration()
         {
-            Marshal = new CopyResulMarshal();
+            Marshal = new CopyResultMarshal();
             Synchronize = new SingleWriterMultipleReaders();
             CommandSerializer = new CommandSerializer();
             JournalFactory = new JournalFactory();
