@@ -2,7 +2,7 @@ using Kiwi.Json;
 
 namespace Kiwi.Prevalence.Marshalling
 {
-    public class CopyResulMarshal : IMarshal
+    public class CopyResultMarshal : IMarshal
     {
         #region IMarshal Members
 
