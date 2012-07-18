@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using Kiwi.Json;
 
 namespace Kiwi.Prevalence
@@ -51,6 +53,15 @@ namespace Kiwi.Prevalence
             return type;
         }
 
+        public void SetAlias(Type commandType, string @alias)
+        {
+            if (!typeof(ICommand).IsAssignableFrom(commandType))
+            {
+                throw new ArgumentException("The type must be assignable to ICommand", "commandType");
+            }
+            _aliasToType.Add(@alias, commandType);
+            _typeToAlias.Add(commandType, @alias);
+        }
         public void SetAlias<TCommand>(string @alias) where TCommand : ICommand
         {
             _aliasToType.Add(@alias, typeof (TCommand));
@@ -64,6 +75,22 @@ namespace Kiwi.Prevalence
             where TCommand : ICommand
         {
             commandSerializer.SetAlias<TCommand>(alias);
+            return commandSerializer;
+        }
+
+        public static CommandSerializer WithTypeAliasForAllCommandsInAssembly(this CommandSerializer commandSerializer, Assembly assembly, Func<Type,bool> filter = null)
+        {
+            var types = from type in assembly.GetExportedTypes()
+                        where type.IsClass
+                        where !type.IsAbstract
+                        where typeof (ICommand).IsAssignableFrom(type)
+                        where (filter == null) || filter(type)
+                        select type;
+
+            foreach (var type in types)
+            {
+                commandSerializer.SetAlias(type, type.Name);
+            }
             return commandSerializer;
         }
     }
