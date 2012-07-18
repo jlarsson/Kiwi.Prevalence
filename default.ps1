@@ -11,7 +11,6 @@ properties {
 
 
 	$git_version = (git describe --tags --abbrev=0).Replace("v", "")
-	$git_commit = (git log --oneline -1).Split(' ')[0]
 
 
 	# specify projects 
