@@ -76,6 +76,7 @@
     <Compile Include="QueryOptions.cs" />
     <Compile Include="Repository.cs" />
     <Compile Include="RepositoryConfiguration.cs" />
+    <Compile Include="RevisionDependency.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

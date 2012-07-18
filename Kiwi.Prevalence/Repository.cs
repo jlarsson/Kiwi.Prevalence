@@ -6,6 +6,7 @@ namespace Kiwi.Prevalence
     public class Repository<TModel> : IRepository<TModel>
     {
         private readonly object _initializeSync = new object();
+        private IRevisionDependency _revisionDependency ;
         private string _path;
 
         public Repository(Func<TModel> modelFactory)
@@ -21,6 +22,7 @@ namespace Kiwi.Prevalence
             IRepositoryConfiguration configuration,
             IModelFactory<TModel> modelFactory)
         {
+            _revisionDependency = new RevisionDependency<TModel>(this);
             _path = "model";
 
             Configuration = new RepositoryConfiguration
@@ -59,6 +61,11 @@ namespace Kiwi.Prevalence
 
         #region IRepository<TModel> Members
 
+        public IRevisionDependency RevisionDependency
+        {
+            get { return _revisionDependency; }
+        }
+
         public long SnapshotRevision
         {
             get
@@ -90,12 +97,19 @@ namespace Kiwi.Prevalence
             EnsureInitialized();
             var synchronize = (options == null ? Configuration.Synchronize : options.GetSynchronize(Configuration.Synchronize)) ?? Configuration.Synchronize;
             var marshal = (options == null ? Configuration.Marshal : options.GetMarshal(Configuration.Marshal)) ?? Configuration.Marshal;
-            return synchronize.Write(() =>
-                                         {
-                                             var action = command.Prepare(Model);
-                                             Journal.LogCommand(command);
-                                             return marshal.MarshalCommandResult(action());
-                                         });
+            try
+            {
+                return synchronize.Write(() =>
+                                             {
+                                                 var action = command.Prepare(Model);
+                                                 Journal.LogCommand(command);
+                                                 return marshal.MarshalCommandResult(action());
+                                             });
+            }
+            finally
+            {
+                InvalidateRevisionDependency();
+            }
         }
 
         public void Dispose()
@@ -119,12 +133,19 @@ namespace Kiwi.Prevalence
         public void Purge()
         {
             EnsureInitialized();
-            Configuration.Synchronize.Write(() =>
-                                  {
-                                      Journal.Purge();
-                                      Model = Journal.Restore(ModelFactory);
-                                      return true;
-                                  });
+            try
+            {
+                Configuration.Synchronize.Write(() =>
+                                                    {
+                                                        Journal.Purge();
+                                                        Model = Journal.Restore(ModelFactory);
+                                                        return true;
+                                                    });
+            }
+            finally
+            {
+                InvalidateRevisionDependency();
+            }
         }
 
         #endregion
@@ -132,6 +153,11 @@ namespace Kiwi.Prevalence
         private bool IsInitialized()
         {
             return Journal != null;
+        }
+
+        private void InvalidateRevisionDependency()
+        {
+            _revisionDependency = _revisionDependency.Renew();
         }
 
         private void EnsureInitialized()
