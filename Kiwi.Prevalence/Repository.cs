@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Kiwi.Prevalence.Journaling;
 
 namespace Kiwi.Prevalence
@@ -6,7 +7,7 @@ namespace Kiwi.Prevalence
     public class Repository<TModel> : IRepository<TModel>
     {
         private readonly object _initializeSync = new object();
-        private IRevisionDependency _revisionDependency ;
+        private RevisionDependency<TModel> _revisionDependency ;
         private string _path;
 
         public Repository(Func<TModel> modelFactory)
@@ -22,7 +23,6 @@ namespace Kiwi.Prevalence
             IRepositoryConfiguration configuration,
             IModelFactory<TModel> modelFactory)
         {
-            _revisionDependency = new RevisionDependency<TModel>(this);
             _path = "model";
 
             Configuration = new RepositoryConfiguration
@@ -36,6 +36,7 @@ namespace Kiwi.Prevalence
 
 
             ModelFactory = modelFactory;
+            _revisionDependency = new RevisionDependency<TModel>(this);
         }
 
         public IRepositoryConfiguration Configuration { get; private set; }
@@ -157,7 +158,8 @@ namespace Kiwi.Prevalence
 
         private void InvalidateRevisionDependency()
         {
-            _revisionDependency = _revisionDependency.Renew();
+            var old = Interlocked.Exchange(ref _revisionDependency, new RevisionDependency<TModel>(this));
+            old.IsValid = false;
         }
 
         private void EnsureInitialized()
