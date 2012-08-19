@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using Kiwi.Prevalence.Journaling;
 
@@ -7,8 +8,8 @@ namespace Kiwi.Prevalence
     public class Repository<TModel> : IRepository<TModel>
     {
         private readonly object _initializeSync = new object();
-        private RevisionDependency<TModel> _revisionDependency ;
         private string _path;
+        private RevisionDependency<TModel> _revisionDependency;
 
         public Repository(Func<TModel> modelFactory)
             : this(new RepositoryConfiguration(), new ModelFactory<TModel>(modelFactory))
@@ -88,16 +89,22 @@ namespace Kiwi.Prevalence
         public TResult Query<TResult>(Func<TModel, TResult> query, IQueryOptions options = null)
         {
             EnsureInitialized();
-            var synchronize = (options == null ? Configuration.Synchronize : options.GetSynchronize(Configuration.Synchronize)) ?? Configuration.Synchronize;
-            var marshal = (options == null ? Configuration.Marshal : options.GetMarshal(Configuration.Marshal)) ?? Configuration.Marshal;
+            var synchronize = (options == null
+                                   ? Configuration.Synchronize
+                                   : options.GetSynchronize(Configuration.Synchronize)) ?? Configuration.Synchronize;
+            var marshal = (options == null ? Configuration.Marshal : options.GetMarshal(Configuration.Marshal)) ??
+                          Configuration.Marshal;
             return synchronize.Read(() => marshal.MarshalQueryResult(query(Model)));
         }
 
         public TResult Execute<TResult>(ICommand<TModel, TResult> command, IQueryOptions options = null)
         {
             EnsureInitialized();
-            var synchronize = (options == null ? Configuration.Synchronize : options.GetSynchronize(Configuration.Synchronize)) ?? Configuration.Synchronize;
-            var marshal = (options == null ? Configuration.Marshal : options.GetMarshal(Configuration.Marshal)) ?? Configuration.Marshal;
+            var synchronize = (options == null
+                                   ? Configuration.Synchronize
+                                   : options.GetSynchronize(Configuration.Synchronize)) ?? Configuration.Synchronize;
+            var marshal = (options == null ? Configuration.Marshal : options.GetMarshal(Configuration.Marshal)) ??
+                          Configuration.Marshal;
             try
             {
                 return synchronize.Write(() =>
@@ -115,20 +122,17 @@ namespace Kiwi.Prevalence
 
         public void Dispose()
         {
-            if (Journal != null)
-            {
-                Journal.Dispose();
-            }
+            TeardownJournalAndModel();
         }
 
         public void SaveSnapshot()
         {
             EnsureInitialized();
             Configuration.Synchronize.Write(() =>
-                                  {
-                                      Journal.SaveSnapshot(Model);
-                                      return true;
-                                  });
+                                                {
+                                                    Journal.SaveSnapshot(Model);
+                                                    return true;
+                                                });
         }
 
         public void Purge()
@@ -151,6 +155,23 @@ namespace Kiwi.Prevalence
 
         #endregion
 
+        private void TeardownJournalAndModel()
+        {
+            var j = Journal;
+            var m = Model;
+            Journal = null;
+            Model = default(TModel);
+            DisposeObjects(j, m);
+        }
+
+        private void DisposeObjects(params object[] objects)
+        {
+            foreach (var disposable in objects.OfType<IDisposable>())
+            {
+                disposable.Dispose();
+            }
+        }
+
         private bool IsInitialized()
         {
             return Journal != null;
@@ -169,14 +190,25 @@ namespace Kiwi.Prevalence
                 lock (_initializeSync)
                 {
                     Configuration.Synchronize.Write(() =>
-                                          {
-                                              if (Journal == null)
-                                              {
-                                                  Journal = Configuration.JournalFactory.CreateJournal(Configuration, _path);
-                                                  Model = Journal.Restore(ModelFactory);
-                                              }
-                                              return true;
-                                          });
+                                                        {
+                                                            if (Journal == null)
+                                                            {
+                                                                try
+                                                                {
+                                                                    Journal = Configuration.JournalFactory.CreateJournal
+                                                                        (
+                                                                            Configuration,
+                                                                            _path);
+                                                                    Model = Journal.Restore(ModelFactory);
+                                                                }
+                                                                catch
+                                                                {
+                                                                    TeardownJournalAndModel();
+                                                                    throw;
+                                                                }
+                                                            }
+                                                            return true;
+                                                        });
                 }
             }
         }
