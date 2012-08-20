@@ -1,17 +1,17 @@
 properties {
+	# Update this manually for each new version
+	$pack_version = "0.2.4.0"
+
 	$base_dir = resolve-path .
 	$lib_dir = join-path $base_dir "pack\lib"
 	$nuget_tool = join-path $base_dir ".nuget\nuget.exe"
 
-	$pack_version = (git describe --tags --abbrev=0).Replace("v", "")
-	#$pack_commit = (git log --oneline -1).Split(' ')[0]
+	# Previously, package versions and git-tags had to be in sync, but this is problematic in the long run
+	# due to git's separate commits for branch and tags
+	#$pack_version = (git describe --tags --abbrev=0).Replace("v", "")
+
 	$pack_author = "Joakim Larsson"
 	$pack_copyright = "Copyright © Joakim Larsson 2012"
-
-
-
-	$git_version = (git describe --tags --abbrev=0).Replace("v", "")
-
 
 	# specify projects 
 	$prevalence = @{
@@ -29,7 +29,8 @@ properties {
 	$solutions = ($net40)
 }
 
-$framework = '4.0'
+#$framework = "4.0"
+Framework("4.0")
 
 
 task default -depends pack

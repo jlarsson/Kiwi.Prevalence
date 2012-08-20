@@ -38,7 +38,8 @@ namespace Kiwi.Prevalence.Tests
                 var repo =
                     new Repository<Model>(
                         new RepositoryConfiguration
-                            {CommandSerializer = new CommandSerializer().WithTypeAlias<AddUserCommand>("addUser")},
+                            //{CommandSerializer = new CommandSerializer().WithTypeAlias<AddUserCommand>("addUser")},
+                            {CommandSerializer = new CommandSerializer().WithTypeAliasForAllCommandsInAssembly(typeof(AddUserCommand).Assembly)},
                         new ModelFactory<Model>(() => new Model()))
                         {
                             Path = "c:\\temp\\a"
