@@ -1,21 +1,22 @@
 <?xml version="1.0"?>
 <package >
-  <metadata>
-    <id>$id$</id>
-    <version>$version$</version>
-    <title>$title$</title>
-    <authors>$author$</authors>
-    <licenseUrl>https://github.com/jlarsson/Kiwi.Prevalence</licenseUrl>
-    <projectUrl>https://github.com/jlarsson/Kiwi.Prevalence</projectUrl>
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>$description$</description>
-    <copyright>$copyright$</copyright>
-    <tags>Prevalence Database In-memory</tags>
-    <dependencies>
-      <dependency id="Kiwi.Json" version="2.0.0.7" />
-    </dependencies>
-  </metadata>
-  <files>
-    <file src="$libdir$\net40\Kiwi.Prevalence.dll" target="lib\net40" />
-  </files>
+	<metadata>
+		<id>$id$</id>
+		<version>$version$</version>
+		<title>$title$</title>
+		<authors>$author$</authors>
+		<licenseUrl>https://github.com/jlarsson/Kiwi.Prevalence</licenseUrl>
+		<projectUrl>https://github.com/jlarsson/Kiwi.Prevalence</projectUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>$description$</description>
+		<copyright>$copyright$</copyright>
+		<tags>Prevalence Database In-memory</tags>
+		<dependencies>
+			<dependency id="Kiwi.Json" version="2.0.0.7" />
+		</dependencies>
+	</metadata>
+	<files>
+		<file src="$libdir$\net40\Kiwi.Prevalence.dll" target="lib\net40" />
+		<file src="$libdir$\net40\Kiwi.Prevalence.pdb" target="lib\net40" />
+	</files>
 </package>
