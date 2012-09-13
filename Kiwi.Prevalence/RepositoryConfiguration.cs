@@ -4,15 +4,14 @@ using Kiwi.Prevalence.Marshalling;
 
 namespace Kiwi.Prevalence
 {
-    public class RepositoryConfiguration : IRepositoryConfiguration
+    public class RepositoryConfigurationBase: IRepositoryConfiguration
     {
-        public RepositoryConfiguration()
+        public RepositoryConfigurationBase()
         {
             Marshal = new CopyResultMarshal();
             Synchronize = new SingleWriterMultipleReaders();
             CommandSerializer = new CommandSerializer();
-            JournalFactory = new JournalFactory();
-            SnapshotArchiver = new DeleteArchivedSnapshots();
+            JournalFactory = null; // TODO: Give a factory that notifies about configuration error
         }
 
         #region IRepositoryConfiguration Members
@@ -21,8 +20,18 @@ namespace Kiwi.Prevalence
         public ISynchronize Synchronize { get; set; }
         public ICommandSerializer CommandSerializer { get; set; }
         public IJournalFactory JournalFactory { get; set; }
-        public ISnapshotArchiver SnapshotArchiver { get; set; }
 
         #endregion
+    }
+
+    public class RepositoryConfiguration : RepositoryConfigurationBase
+    {
+        public RepositoryConfiguration(string path)
+        {
+            Marshal = new CopyResultMarshal();
+            Synchronize = new SingleWriterMultipleReaders();
+            CommandSerializer = new CommandSerializer();
+            JournalFactory = new JournalFactory(path);
+        }
     }
 }

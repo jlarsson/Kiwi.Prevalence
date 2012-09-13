@@ -1,6 +1,6 @@
-using System;
 using System.IO;
 using System.Linq;
+using Kiwi.Prevalence.Journaling;
 using Moq;
 using NUnit.Framework;
 
@@ -20,9 +20,9 @@ namespace Kiwi.Prevalence.Tests
         {
         }
         public class ModelCommand: AbstractCommand<Model,int>{
-            public override Func<int> Prepare(Model model)
+            public override int Execute(Model model)
             {
-                return () => 0;
+                return 0;
             }
         }
 
@@ -32,12 +32,12 @@ namespace Kiwi.Prevalence.Tests
             using (var mocks = new Mocks())
             {
                 var archiver = mocks.Create<ISnapshotArchiver>();
-                var configuration = new RepositoryConfiguration()
+                var configuration = new RepositoryConfigurationBase()
                                         {
-                                            SnapshotArchiver = archiver.Object
+                                            JournalFactory = new JournalFactory(_repoPath){SnapshotArchiver = archiver.Object}
                                         };
 
-                using (var repo = new Repository<Model>(configuration, new ModelFactory<Model>(() => new Model())){Path = _repoPath})
+                using (var repo = new Repository<Model>(configuration, new ModelFactory<Model>(() => new Model())))
                 {
                     archiver.Setup(a => a.Archive(It.IsAny<ISnapshotArchiveInfo>()))
                         .Callback(
@@ -54,14 +54,14 @@ namespace Kiwi.Prevalence.Tests
             using (var mocks = new Mocks())
             {
                 var archiver = mocks.Create<ISnapshotArchiver>();
-                var configuration = new RepositoryConfiguration()
+                var configuration = new RepositoryConfigurationBase()
                                         {
-                                            SnapshotArchiver = archiver.Object
+                                            JournalFactory = new JournalFactory(_repoPath) { SnapshotArchiver = archiver.Object }
                                         };
 
                 var expectedArchives = new[] {_repoPath + ".journal.1"};
 
-                using (var repo = new Repository<Model>(configuration, new ModelFactory<Model>(() => new Model())) { Path = _repoPath })
+                using (var repo = new Repository<Model>(configuration, new ModelFactory<Model>(() => new Model())))
                 {
                     archiver.Setup(a => a.Archive(It.IsAny<ISnapshotArchiveInfo>()))
                         .Callback(

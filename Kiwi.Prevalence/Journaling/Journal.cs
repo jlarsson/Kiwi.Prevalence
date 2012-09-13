@@ -8,19 +8,21 @@ namespace Kiwi.Prevalence.Journaling
 {
     public class Journal : IJournal
     {
-        public Journal(IRepositoryConfiguration configuration, string path)
+        public Journal(IRepositoryConfiguration configuration, string path, ISnapshotArchiver snapshotArchiver)
         {
             BasePath = path;
+            SnapshotArchiver = snapshotArchiver;
             JournalPath = path + ".journal";
             SnapshotPath = path + ".snapshot";
             Configuration = configuration;
         }
 
-        public IRepositoryConfiguration Configuration { get; private set; }
+        public IRepositoryConfiguration Configuration { get; protected set; }
         public TextWriter JournalWriter { get; protected set; }
-        public string BasePath { get; set; }
-        public string JournalPath { get; private set; }
-        public string SnapshotPath { get; set; }
+        public string BasePath { get; protected set; }
+        public ISnapshotArchiver SnapshotArchiver { get; protected set; }
+        public string JournalPath { get; protected set; }
+        public string SnapshotPath { get; protected set; }
 
         #region IJournal Members
 
@@ -111,7 +113,7 @@ namespace Kiwi.Prevalence.Journaling
             File.WriteAllText(JournalPath, "");
             File.WriteAllText(SnapshotPath, snapshot.ToString());
 
-            Configuration.SnapshotArchiver.Archive(new SnapshotArchiveInfo()
+            SnapshotArchiver.Archive(new SnapshotArchiveInfo()
                                                        {
                                                            ArchivedFilePaths = archivedFilePaths
                                                        }

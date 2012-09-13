@@ -12,6 +12,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pack", "pack", "{586C2ECE-9
 		default.ps1 = default.ps1
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kiwi.Prevalence.Mssql", "Kiwi.Prevalence.Mssql\Kiwi.Prevalence.Mssql.csproj", "{A6962A6E-DF4C-4A7F-AFE9-09A81512FBDB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kiwi.Prevalence.Mssql.Tests", "Kiwi.Prevalence.Mssql.Tests\Kiwi.Prevalence.Mssql.Tests.csproj", "{59F2A203-8BD4-43F8-879C-78CB5740BD09}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +30,14 @@ Global
 		{14690C45-453C-4ADA-9AF8-7AE2308FACEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14690C45-453C-4ADA-9AF8-7AE2308FACEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{14690C45-453C-4ADA-9AF8-7AE2308FACEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6962A6E-DF4C-4A7F-AFE9-09A81512FBDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6962A6E-DF4C-4A7F-AFE9-09A81512FBDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6962A6E-DF4C-4A7F-AFE9-09A81512FBDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6962A6E-DF4C-4A7F-AFE9-09A81512FBDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59F2A203-8BD4-43F8-879C-78CB5740BD09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59F2A203-8BD4-43F8-879C-78CB5740BD09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59F2A203-8BD4-43F8-879C-78CB5740BD09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59F2A203-8BD4-43F8-879C-78CB5740BD09}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

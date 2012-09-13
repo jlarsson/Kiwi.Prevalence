@@ -8,15 +8,14 @@ namespace Kiwi.Prevalence
     public class Repository<TModel> : IRepository<TModel>
     {
         private readonly object _initializeSync = new object();
-        private string _path;
         private RevisionDependency<TModel> _revisionDependency;
 
         public Repository(Func<TModel> modelFactory)
-            : this(new RepositoryConfiguration(), new ModelFactory<TModel>(modelFactory))
+            : this(new RepositoryConfiguration("model"), new ModelFactory<TModel>(modelFactory))
         {
         }
 
-        public Repository(IModelFactory<TModel> modelFactory) : this(new RepositoryConfiguration(), modelFactory)
+        public Repository(IModelFactory<TModel> modelFactory) : this(new RepositoryConfiguration("model"), modelFactory)
         {
         }
 
@@ -24,14 +23,11 @@ namespace Kiwi.Prevalence
             IRepositoryConfiguration configuration,
             IModelFactory<TModel> modelFactory)
         {
-            _path = "model";
-
-            Configuration = new RepositoryConfiguration
+            Configuration = new RepositoryConfigurationBase
                                 {
                                     CommandSerializer = configuration.CommandSerializer,
                                     JournalFactory = configuration.JournalFactory,
                                     Marshal = configuration.Marshal,
-                                    SnapshotArchiver = configuration.SnapshotArchiver,
                                     Synchronize = configuration.Synchronize
                                 };
 
@@ -44,19 +40,6 @@ namespace Kiwi.Prevalence
 
         public IModelFactory<TModel> ModelFactory { get; set; }
 
-        public string Path
-        {
-            get { return _path; }
-            set
-            {
-                if (IsInitialized())
-                {
-                    throw new ApplicationException("Path cannot be changed after a repository is initialized");
-                }
-                _path = System.IO.Path.GetFullPath(value);
-            }
-        }
-
         public IJournal Journal { get; protected set; }
 
         protected TModel Model { get; set; }
@@ -66,24 +49,6 @@ namespace Kiwi.Prevalence
         public IRevisionDependency RevisionDependency
         {
             get { return _revisionDependency; }
-        }
-
-        public long SnapshotRevision
-        {
-            get
-            {
-                EnsureInitialized();
-                return Journal.SnapshotRevision;
-            }
-        }
-
-        public long Revision
-        {
-            get
-            {
-                EnsureInitialized();
-                return Journal.Revision;
-            }
         }
 
         public TResult Query<TResult>(Func<TModel, TResult> query, IQueryOptions options = null)
@@ -109,9 +74,8 @@ namespace Kiwi.Prevalence
             {
                 return synchronize.Write(() =>
                                              {
-                                                 var action = command.Prepare(Model);
                                                  Journal.LogCommand(command);
-                                                 return marshal.MarshalCommandResult(action());
+                                                 return marshal.MarshalCommandResult(command.Execute(Model));
                                              });
             }
             finally
@@ -172,11 +136,6 @@ namespace Kiwi.Prevalence
             }
         }
 
-        private bool IsInitialized()
-        {
-            return Journal != null;
-        }
-
         private void InvalidateRevisionDependency()
         {
             var old = Interlocked.Exchange(ref _revisionDependency, new RevisionDependency<TModel>(this));
@@ -195,10 +154,9 @@ namespace Kiwi.Prevalence
                                                             {
                                                                 try
                                                                 {
-                                                                    Journal = Configuration.JournalFactory.CreateJournal
-                                                                        (
-                                                                            Configuration,
-                                                                            _path);
+                                                                    Journal =
+                                                                        Configuration.JournalFactory.CreateJournal(
+                                                                            Configuration);
                                                                     Model = Journal.Restore(ModelFactory);
                                                                 }
                                                                 catch

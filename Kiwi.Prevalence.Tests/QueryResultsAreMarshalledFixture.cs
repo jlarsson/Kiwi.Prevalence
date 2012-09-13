@@ -1,4 +1,3 @@
-using System.IO;
 using Kiwi.Prevalence.Marshalling;
 using NUnit.Framework;
 
@@ -22,7 +21,7 @@ namespace Kiwi.Prevalence.Tests
             using (var mocks = new Mocks())
             {
                 var marshal = mocks.Create<IMarshal>();
-                var configuration = new RepositoryConfiguration
+                var configuration = new RepositoryConfiguration("db")
                                         {
                                             Marshal = marshal.Object
                                         };
@@ -40,7 +39,7 @@ namespace Kiwi.Prevalence.Tests
         [Test]
         public void ResultIsMarshalled()
         {
-            using (var repo = new Repository<Model>(new RepositoryConfiguration(),
+            using (var repo = new Repository<Model>(new RepositoryConfiguration("db"),
                                                     new ModelFactory<Model>(() => new Model())))
             {
                 var modelResult = new Entity {Name = "A"};
