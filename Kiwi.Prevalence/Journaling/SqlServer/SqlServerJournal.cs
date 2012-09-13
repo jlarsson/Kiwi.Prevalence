@@ -35,13 +35,14 @@ namespace Kiwi.Prevalence.Journaling.SqlServer
 
             using (var connection = CreateConnection())
             {
-                var cmd = connection.CreateCommand();
-                cmd.CommandType = CommandType.Text;
-                cmd.CommandText = Sql.LogCommand;
-                cmd.Parameters.Add(new SqlParameter("Type", commandType));
-                cmd.Parameters.Add(new SqlParameter("CommandJson", commandJson));
-
-                cmd.ExecuteNonQuery();
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.CommandText = Sql.LogCommand;
+                    cmd.Parameters.Add(new SqlParameter("Type", commandType));
+                    cmd.Parameters.Add(new SqlParameter("CommandJson", commandJson));
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
 
@@ -108,17 +109,34 @@ namespace Kiwi.Prevalence.Journaling.SqlServer
 
             using (var connection = CreateConnection())
             {
-                var cmd = connection.CreateCommand();
-                cmd.CommandType = CommandType.Text;
-                cmd.CommandText = Sql.SaveSnapshot;
-                cmd.Parameters.Add(new SqlParameter("ModelJson", modelJson));
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.CommandText = Sql.SaveSnapshot;
+                    cmd.Parameters.Add(new SqlParameter("ModelJson", modelJson));
 
-                cmd.ExecuteNonQuery();
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
 
         public void Purge()
         {
+            using (var connection = CreateConnection())
+            {
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.CommandText = Sql.PurgeJournal;
+                    cmd.ExecuteNonQuery();
+                }
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.CommandText = Sql.PurgeSnapshot;
+                    cmd.ExecuteNonQuery();
+                }
+            }
         }
 
         #endregion
@@ -186,7 +204,14 @@ namespace Kiwi.Prevalence.Journaling.SqlServer
                 GetCommandsFromRevision =
                     FormatCommand(
                         "SELECT Type, CommandJson FROM [Journal{0}] WHERE Revision > @Revision ORDER BY Revision");
+
+                PurgeJournal = FormatCommand("delete [Journal{0}]");
+                PurgeSnapshot = FormatCommand("delete [Snapshot{0}]");
             }
+
+            public string PurgeSnapshot { get; private set; }
+
+            public string PurgeJournal { get; private set; }
 
             public string LastSnapshot { get; private set; }
 
