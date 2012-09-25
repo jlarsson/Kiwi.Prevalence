@@ -1,6 +1,6 @@
 properties {
 	# Update this manually for each new version
-	$pack_version = "1.0.1.0"
+	$pack_version = "1.0.2.0"
 
 	$base_dir = resolve-path .
 	$lib_dir = join-path $base_dir "pack\lib"
