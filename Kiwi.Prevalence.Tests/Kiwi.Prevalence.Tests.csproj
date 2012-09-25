@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HowToTestWithMemoryJournal\RecipeForTestingWithMemoryJournal.cs" />
     <Compile Include="ModelIsCreatedBeforeAnyQuery.cs" />
     <Compile Include="ScratchFixture.cs" />
     <Compile Include="Mocks.cs" />

@@ -53,8 +53,12 @@
     <Compile Include="Concurrency\SingleWriterMultipleReaders.cs" />
     <Compile Include="DeleteArchivedSnapshots.cs" />
     <Compile Include="Error.cs" />
+    <Compile Include="FluentConfiguration\FluentRepositoryFactory.cs" />
+    <Compile Include="IRepositoryFactory.cs" />
+    <Compile Include="RepositoryFactory.cs" />
     <Compile Include="ICommand.cs" />
     <Compile Include="ICommandSerializer.cs" />
+    <Compile Include="FluentConfiguration\IFluentRepositoryFactory.cs" />
     <Compile Include="IModelFactory.cs" />
     <Compile Include="IQueryOptions.cs" />
     <Compile Include="IRepository.cs" />
@@ -68,6 +72,9 @@
     <Compile Include="Journaling\InterningStringConverter.cs" />
     <Compile Include="Journaling\Journal.cs" />
     <Compile Include="Journaling\JournalFactory.cs" />
+    <Compile Include="Journaling\Memory\MemoryJournalData.cs" />
+    <Compile Include="Journaling\Memory\MemoryJournalFactory.cs" />
+    <Compile Include="Journaling\Memory\MemoryJournal.cs" />
     <Compile Include="Journaling\SnapshotArchiveInfo.cs" />
     <Compile Include="Journaling\SqlServer\SqlServerJournal.cs" />
     <Compile Include="Journaling\SqlServer\SqlServerJournalFactory.cs" />
