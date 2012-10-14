@@ -1,6 +1,8 @@
 using System.Data;
 using System.Data.SqlClient;
 using Kiwi.Json;
+using Kiwi.Json.Converters;
+using Kiwi.Json.Untyped;
 
 namespace Kiwi.Prevalence.Journaling.SqlServer
 {
@@ -69,10 +71,10 @@ namespace Kiwi.Prevalence.Journaling.SqlServer
                 }
 
                 var model = modelFactory.CreateModel();
-
+                var interningStringConverter = new InterningStringConverter();
                 if (!string.IsNullOrEmpty(snapshotJson))
                 {
-                    JsonConvert.Parse(snapshotJson, model, new InterningStringConverter());
+                    JsonConvert.Parse(snapshotJson, model, interningStringConverter);
                 }
 
                 using (var cmd = connection.CreateCommand())
@@ -88,13 +90,12 @@ namespace Kiwi.Prevalence.Journaling.SqlServer
                             var commandType = reader.GetString(0);
                             var commandJson = reader.GetString(1);
 
-                            var command = Configuration.CommandSerializer.Deserialize(new JournalCommand
-                                                                                          {
-                                                                                              Type = commandType,
-                                                                                              Command =
-                                                                                                  JsonConvert.Parse(
-                                                                                                      commandJson)
-                                                                                          });
+                            var command = Configuration.CommandSerializer.Deserialize(
+                                new JournalCommand
+                                {
+                                    Type = commandType,
+                                    Command = JsonConvert.Parse<IJsonValue>(commandJson,interningStringConverter)
+                                });
                             command.Replay(model);
                         }
                     }

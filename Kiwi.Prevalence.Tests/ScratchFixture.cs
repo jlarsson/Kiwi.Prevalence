@@ -5,7 +5,7 @@ using NUnit.Framework;
 
 namespace Kiwi.Prevalence.Tests
 {
-    [TestFixture]
+    [TestFixture,Explicit]
     public class ScratchFixture
     {
         public class Model
@@ -43,12 +43,13 @@ namespace Kiwi.Prevalence.Tests
                         new ModelFactory<Model>(() => new Model()))
                 )
             {
-                var journal = repo.Journal as Journal;
+                // make a dummy query to boot up repo
+                repo.Query(m => 0);
 
+                var journal = repo.Journal as Journal;
                 for (var i = 0; i < 500001; ++i)
                 {
                     repo.Execute(new AddUserCommand("joe" + i));
-
 
 
                     if (journal.Revision - journal.SnapshotRevision > 100005)
@@ -56,6 +57,7 @@ namespace Kiwi.Prevalence.Tests
                         repo.SaveSnapshot();
                     }
                 }
+
                 Console.Out.WriteLine("Revision is now {0}", journal.Revision);
                 Console.Out.WriteLine("Snapshot revision is now {0}", journal.SnapshotRevision);
                 Console.Out.WriteLine("Model size is {0}", repo.Query(m => m.Users.Count));

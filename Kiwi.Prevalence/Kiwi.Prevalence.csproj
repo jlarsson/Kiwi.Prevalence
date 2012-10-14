@@ -33,9 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Kiwi.Json, Version=2.0.0.7, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Kiwi.Json, Version=2.1.6.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Kiwi.Json.2.0.0.7\lib\net40\Kiwi.Json.dll</HintPath>
+      <HintPath>..\packages\Kiwi.Json.2.1.6.0\lib\net40\Kiwi.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -69,7 +69,6 @@
     <Compile Include="JournalCommand.cs" />
     <Compile Include="Journaling\IJournal.cs" />
     <Compile Include="Journaling\IJournalFactory.cs" />
-    <Compile Include="Journaling\InterningStringConverter.cs" />
     <Compile Include="Journaling\Journal.cs" />
     <Compile Include="Journaling\JournalFactory.cs" />
     <Compile Include="Journaling\Memory\MemoryJournalData.cs" />

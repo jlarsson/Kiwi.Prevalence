@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Kiwi.Json;
 using Kiwi.Json.Conversion;
+using Kiwi.Json.Converters;
 
 namespace Kiwi.Prevalence.Journaling
 {
@@ -50,6 +51,7 @@ namespace Kiwi.Prevalence.Journaling
         public TModel Restore<TModel>(IModelFactory<TModel> modelFactory)
         {
             var model = modelFactory.CreateModel();
+            var interningStringConverter = new InterningStringConverter();
             if (File.Exists(SnapshotPath))
             {
                 using (var reader = new StreamReader(OpenReadStream(SnapshotPath)))
@@ -58,7 +60,7 @@ namespace Kiwi.Prevalence.Journaling
 
                     var snapshotData = JsonConvert.Parse(parser,
                                                          new Snapshot<TModel> {Model = model},
-                                                         new InterningStringConverter());
+                                                         interningStringConverter);
                     Revision = snapshotData.Revision;
                     SnapshotRevision = snapshotData.Revision;
                 }
@@ -72,7 +74,7 @@ namespace Kiwi.Prevalence.Journaling
                     var parser = new JsonTextParser(reader);
                     while (!parser.EndOfInput())
                     {
-                        var entry = JsonConvert.Parse<LogEntry>(parser, null);
+                        var entry = JsonConvert.Parse<LogEntry>(parser, null, interningStringConverter);
                         var command = Configuration.CommandSerializer.Deserialize(entry.Command);
 
                         command.Replay(model);

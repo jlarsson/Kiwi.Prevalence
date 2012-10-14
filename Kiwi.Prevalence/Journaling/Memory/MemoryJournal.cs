@@ -1,4 +1,5 @@
 using Kiwi.Json;
+using Kiwi.Json.Converters;
 
 namespace Kiwi.Prevalence.Journaling.Memory
 {
@@ -28,15 +29,16 @@ namespace Kiwi.Prevalence.Journaling.Memory
         {
             var model = modelFactory.CreateModel();
 
+            var interningStringConverter = new InterningStringConverter();
             if (Data.JsonSnapshot != null)
             {
-                JsonConvert.Parse(Data.JsonSnapshot, model, new InterningStringConverter());
+                JsonConvert.Parse(Data.JsonSnapshot, model, interningStringConverter);
                 modelFactory.Restore(model);
             }
 
             foreach (var entryJson in Data.JsonLog)
             {
-                var entry = JsonConvert.Parse<JournalCommand>(entryJson);
+                var entry = JsonConvert.Parse<JournalCommand>(entryJson, interningStringConverter);
                 var command = Configuration.CommandSerializer.Deserialize(entry);
 
                 command.Replay(model);
