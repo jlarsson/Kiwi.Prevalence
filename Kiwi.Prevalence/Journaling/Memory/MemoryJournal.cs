@@ -1,4 +1,5 @@
 using Kiwi.Json;
+using Kiwi.Json.Conversion;
 using Kiwi.Json.Converters;
 
 namespace Kiwi.Prevalence.Journaling.Memory
@@ -18,33 +19,39 @@ namespace Kiwi.Prevalence.Journaling.Memory
         {
         }
 
+        public IRestorePoint<TModel> CreateRestorePoint<TModel>()
+        {
+            var interningStringConverter = new InterningStringConverter();
+            return new RestorePoint<TModel>()
+                       {
+                           OnRestoreSnapshot = m => RestoreSnapshot(m, interningStringConverter),
+                           OnRestoreJournal = m => RestoreJournal(m, interningStringConverter)
+                       };
+        }
+
+        private void RestoreSnapshot<TModel>(TModel model, params IJsonConverter[] converters)
+        {
+            if (Data.JsonSnapshot != null)
+            {
+                JsonConvert.Parse(Data.JsonSnapshot, model, converters);
+            }
+        }
+        private void RestoreJournal<TModel>(TModel model, params IJsonConverter[] converters)
+        {
+            foreach (var entryJson in Data.JsonLog)
+            {
+                var entry = JsonConvert.Parse<JournalCommand>(entryJson, converters);
+                var command = Configuration.CommandSerializer.Deserialize(entry);
+
+                command.Replay(model);
+            }
+        }
+
         public void LogCommand(ICommand command)
         {
             var journalCommandJson = JsonConvert.Write(Configuration.CommandSerializer.Serialize(command));
 
             Data.JsonLog.Add(journalCommandJson);
-        }
-
-        public TModel Restore<TModel>(IModelFactory<TModel> modelFactory)
-        {
-            var model = modelFactory.CreateModel();
-
-            var interningStringConverter = new InterningStringConverter();
-            if (Data.JsonSnapshot != null)
-            {
-                JsonConvert.Parse(Data.JsonSnapshot, model, interningStringConverter);
-                modelFactory.Restore(model);
-            }
-
-            foreach (var entryJson in Data.JsonLog)
-            {
-                var entry = JsonConvert.Parse<JournalCommand>(entryJson, interningStringConverter);
-                var command = Configuration.CommandSerializer.Deserialize(entry);
-
-                command.Replay(model);
-            }
-            return model;
-
         }
 
         public void SaveSnapshot<TModel>(TModel model)

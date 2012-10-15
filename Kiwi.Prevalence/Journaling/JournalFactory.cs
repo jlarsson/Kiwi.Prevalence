@@ -1,3 +1,5 @@
+using Kiwi.Prevalence.Journaling.Disk;
+
 namespace Kiwi.Prevalence.Journaling
 {
     public class JournalFactory : IJournalFactory
@@ -16,7 +18,7 @@ namespace Kiwi.Prevalence.Journaling
 
         public IJournal CreateJournal(IRepositoryConfiguration configuration)
         {
-            return new Journal(configuration, Path, SnapshotArchiver);
+            return new DiskJournal(configuration, Path, SnapshotArchiver);
         }
 
         #endregion

@@ -1,3 +1,4 @@
+using System;
 using Kiwi.Prevalence.Concurrency;
 using Kiwi.Prevalence.Journaling;
 using Kiwi.Prevalence.Marshalling;
@@ -16,6 +17,17 @@ namespace Kiwi.Prevalence.FluentConfiguration
         public RepositoryConfigurationBase Configuration { get; set; }
 
         #region IFluentRepositoryFactory<TModel> Members
+
+        public TRepository CreateRepository<TRepository>(Func<IRepositoryConfiguration, IModelFactory<TModel>, TRepository> repositoryFactory)
+        {
+            return repositoryFactory(Configuration, ModelFactory);
+        }
+
+        public IFluentRepositoryFactory<TModel> WithEvents(Func<TModel, IModelEvents> eventsFactory)
+        {
+            ModelFactory = new ModelFactoryWithEvents<TModel>(ModelFactory, eventsFactory);
+            return this;
+        }
 
         public IFluentRepositoryFactory<TModel> MarshalUsing(IMarshal marshal)
         {
@@ -43,6 +55,71 @@ namespace Kiwi.Prevalence.FluentConfiguration
 
         public IRepository<TModel> CreateRepository()
         {
+            if (Configuration.CommandSerializer == null)
+            {
+                throw new ApplicationException(string.Format(
+                    @"No CommandSerializer is specified. To fix, change your code to something like
+    RepositoryFactory
+        .ForModel<{0}>()
+        .SerializeCommandsUsing(new CommandSerializer())
+",
+                    typeof (TModel).Name));
+            }
+            if (Configuration.JournalFactory == null)
+            {
+                throw new ApplicationException(string.Format(
+                    @"No JournalFactory is specified. To fix, change your code to something like
+    RepositoryFactory
+        .ForModel<{0}>()
+        .JournalToDisk(path)
+or
+    RepositoryFactory
+        .ForModel<{0}>()
+        .JournalToMemory()
+or
+    RepositoryFactory
+        .ForModel<{0}>()
+        .JournalToToSqlServer(connectionString, repositoryName)
+",
+                    typeof(TModel).Name));
+            }
+            if (Configuration.Marshal == null)
+            {
+                throw new ApplicationException(string.Format(
+                    @"No Marshaller is specified. To fix, change your code to something like
+    RepositoryFactory
+        .ForModel<{0}>()
+        .MarshalByCopying()
+or
+    RepositoryFactory
+        .ForModel<{0}>()
+        .NoMarshal()
+or
+    RepositoryFactory
+        .ForModel<{0}>()
+        .MarshalUsing(new YourOwnCustomMarshaller())
+",
+                    typeof(TModel).Name));
+            }
+            if (Configuration.Synchronize == null)
+            {
+                throw new ApplicationException(string.Format(
+                    @"No Synchronizer is specified. To fix, change your code to something like
+    RepositoryFactory
+        .ForModel<{0}>()
+        .SynchronizeReadersAndWriters()
+or
+    RepositoryFactory
+        .ForModel<{0}>()
+        .SynchronizeNone()
+or
+    RepositoryFactory
+        .ForModel<{0}>()
+        .SynchronizeUsing()(new YourOwnCustomSynhcronize())
+",
+                    typeof(TModel).Name));
+                
+            }
             return new Repository<TModel>(Configuration, ModelFactory);
         }
 

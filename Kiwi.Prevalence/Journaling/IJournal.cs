@@ -4,8 +4,8 @@ namespace Kiwi.Prevalence.Journaling
 {
     public interface IJournal : IDisposable
     {
+        IRestorePoint<TModel> CreateRestorePoint<TModel>();
         void LogCommand(ICommand command);
-        TModel Restore<TModel>(IModelFactory<TModel> modelFactory);
         void SaveSnapshot<TModel>(TModel model);
         void Purge();
     }

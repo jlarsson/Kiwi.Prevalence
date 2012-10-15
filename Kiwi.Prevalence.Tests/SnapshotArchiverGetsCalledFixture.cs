@@ -72,6 +72,5 @@ namespace Kiwi.Prevalence.Tests
                 }
             }
         }
-
     }
 }

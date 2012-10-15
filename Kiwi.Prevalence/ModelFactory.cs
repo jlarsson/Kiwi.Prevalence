@@ -10,7 +10,6 @@ namespace Kiwi.Prevalence
         }
 
         public Func<TModel> Factory { get; protected set; }
-        public Action<TModel> OnRestore { get; set; }
 
         #region IModelFactory<TModel> Members
 
@@ -19,12 +18,9 @@ namespace Kiwi.Prevalence
             return Factory();
         }
 
-        public void Restore(TModel model)
+        public IModelEvents CreateModelEvents(TModel model)
         {
-            if (OnRestore != null)
-            {
-                OnRestore(model);
-            }
+            return model as IModelEvents;
         }
 
         #endregion

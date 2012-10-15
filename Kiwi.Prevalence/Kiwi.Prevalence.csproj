@@ -33,9 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Kiwi.Json, Version=2.1.6.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Kiwi.Json, Version=2.1.7.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Kiwi.Json.2.1.6.0\lib\net40\Kiwi.Json.dll</HintPath>
+      <HintPath>..\packages\Kiwi.Json.2.1.7.0\lib\net40\Kiwi.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -54,7 +54,13 @@
     <Compile Include="DeleteArchivedSnapshots.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="FluentConfiguration\FluentRepositoryFactory.cs" />
+    <Compile Include="FluentConfiguration\ModelFactoryWithEvents.cs" />
+    <Compile Include="IModelEvents.cs" />
     <Compile Include="IRepositoryFactory.cs" />
+    <Compile Include="Journaling\IRestorePoint.cs" />
+    <Compile Include="Journaling\RestorePoint.cs" />
+    <Compile Include="Journaling\SqlServer\SqlServerRestorePoint.cs" />
+    <Compile Include="Journaling\SqlServer\SqlText.cs" />
     <Compile Include="RepositoryFactory.cs" />
     <Compile Include="ICommand.cs" />
     <Compile Include="ICommandSerializer.cs" />
@@ -69,7 +75,7 @@
     <Compile Include="JournalCommand.cs" />
     <Compile Include="Journaling\IJournal.cs" />
     <Compile Include="Journaling\IJournalFactory.cs" />
-    <Compile Include="Journaling\Journal.cs" />
+    <Compile Include="Journaling\Disk\DiskJournal.cs" />
     <Compile Include="Journaling\JournalFactory.cs" />
     <Compile Include="Journaling\Memory\MemoryJournalData.cs" />
     <Compile Include="Journaling\Memory\MemoryJournalFactory.cs" />

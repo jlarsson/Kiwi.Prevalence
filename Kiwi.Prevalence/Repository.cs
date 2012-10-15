@@ -107,7 +107,7 @@ namespace Kiwi.Prevalence
                 Configuration.Synchronize.Write(() =>
                                                     {
                                                         Journal.Purge();
-                                                        Model = Journal.Restore(ModelFactory);
+                                                        TeardownJournalAndModel();
                                                         return true;
                                                     });
             }
@@ -154,10 +154,7 @@ namespace Kiwi.Prevalence
                                                             {
                                                                 try
                                                                 {
-                                                                    Journal =
-                                                                        Configuration.JournalFactory.CreateJournal(
-                                                                            Configuration);
-                                                                    Model = Journal.Restore(ModelFactory);
+                                                                    InitializeJournalAndModel();
                                                                 }
                                                                 catch
                                                                 {
@@ -170,5 +167,59 @@ namespace Kiwi.Prevalence
                 }
             }
         }
+
+        private void InitializeJournalAndModel()
+        {
+            Journal = Configuration.JournalFactory.CreateJournal(Configuration);
+
+            var model = ModelFactory.CreateModel();
+            var modelEvents = ModelFactory.CreateModelEvents(model) ?? new NullModelEvents();
+
+            modelEvents.BeginRestore();
+            using (var restorePoint = Journal.CreateRestorePoint<TModel>())
+            {
+                modelEvents.BeginRestoreSnapshot();
+                restorePoint.RestoreSnapshot(model);
+                modelEvents.EndRestoreSnapshot();
+
+                modelEvents.BeginRestoreJournal();
+                restorePoint.RestoreJournal(model);
+                modelEvents.EndRestoreJournal();
+            }
+            modelEvents.EndRestore();
+
+            Model = model;
+        }
+
+        #region Nested type: NullModelEvents
+
+        private class NullModelEvents : IModelEvents
+        {
+            public void BeginRestore()
+            {
+            }
+
+            public void BeginRestoreSnapshot()
+            {
+            }
+
+            public void EndRestoreSnapshot()
+            {
+            }
+
+            public void BeginRestoreJournal()
+            {
+            }
+
+            public void EndRestoreJournal()
+            {
+            }
+
+            public void EndRestore()
+            {
+            }
+        }
+
+        #endregion
     }
 }

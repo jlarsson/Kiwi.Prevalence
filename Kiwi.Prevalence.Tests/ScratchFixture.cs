@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Kiwi.Prevalence.Journaling;
+using Kiwi.Prevalence.Journaling.Disk;
 using NUnit.Framework;
 
 namespace Kiwi.Prevalence.Tests
@@ -46,7 +46,7 @@ namespace Kiwi.Prevalence.Tests
                 // make a dummy query to boot up repo
                 repo.Query(m => 0);
 
-                var journal = repo.Journal as Journal;
+                var journal = repo.Journal as DiskJournal;
                 for (var i = 0; i < 500001; ++i)
                 {
                     repo.Execute(new AddUserCommand("joe" + i));
