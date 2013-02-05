@@ -1,5 +1,5 @@
-# Kiwi.Prevalance ##
-Kiwi.Prevalance is a .NET [System Prevalence Layer](http://en.wikipedia.org/wiki/System_Prevalence).
+# Kiwi.Prevalence ##
+Kiwi.Prevalence is a .NET [System Prevalence Layer](http://en.wikipedia.org/wiki/System_Prevalence).
 As such, it maintains an application model in memory, providing gated access to ensure consistency and journalling to provide persistence and durability.
 
 ## License 
