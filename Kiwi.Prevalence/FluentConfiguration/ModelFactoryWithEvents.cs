@@ -13,12 +13,12 @@ namespace Kiwi.Prevalence.FluentConfiguration
             _eventsFactory = eventsFactory;
         }
 
-        public TModel CreateModel()
+        public virtual TModel CreateModel()
         {
             return _inner.CreateModel();
         }
 
-        public IModelEvents CreateModelEvents(TModel model)
+        public virtual IModelEvents CreateModelEvents(TModel model)
         {
             return _eventsFactory(model);
         }

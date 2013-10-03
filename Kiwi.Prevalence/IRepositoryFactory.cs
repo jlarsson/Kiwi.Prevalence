@@ -1,6 +1,6 @@
 namespace Kiwi.Prevalence
 {
-    public interface IRepositoryFactory<TModel>
+    public interface IRepositoryFactory<out TModel>
     {
         IRepository<TModel> CreateRepository();
     }

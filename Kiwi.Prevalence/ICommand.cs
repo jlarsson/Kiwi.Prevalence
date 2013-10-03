@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Kiwi.Prevalence
+﻿namespace Kiwi.Prevalence
 {
     public interface ICommand
     {

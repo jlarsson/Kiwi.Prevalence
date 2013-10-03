@@ -12,7 +12,7 @@
 		<copyright>$copyright$</copyright>
 		<tags>Prevalence Database In-memory</tags>
 		<dependencies>
-			<dependency id="Kiwi.Json" version="2.0.0.7" />
+			<dependency id="Kiwi.Json" version="2.1.0.7" />
 		</dependencies>
 	</metadata>
 	<files>

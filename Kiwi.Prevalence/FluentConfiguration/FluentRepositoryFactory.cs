@@ -53,7 +53,7 @@ namespace Kiwi.Prevalence.FluentConfiguration
             return this;
         }
 
-        public IRepository<TModel> CreateRepository()
+        public virtual IRepository<TModel> CreateRepository()
         {
             if (Configuration.CommandSerializer == null)
             {

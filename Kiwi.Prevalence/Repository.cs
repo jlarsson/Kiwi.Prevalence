@@ -46,12 +46,12 @@ namespace Kiwi.Prevalence
 
         #region IRepository<TModel> Members
 
-        public IRevisionDependency RevisionDependency
+        public virtual IRevisionDependency RevisionDependency
         {
             get { return _revisionDependency; }
         }
 
-        public TResult Query<TResult>(Func<TModel, TResult> query, IQueryOptions options = null)
+        public virtual TResult Query<TResult>(Func<TModel, TResult> query, IQueryOptions options = null)
         {
             EnsureInitialized();
             var synchronize = (options == null
@@ -62,7 +62,7 @@ namespace Kiwi.Prevalence
             return synchronize.Read(() => marshal.MarshalQueryResult(query(Model)));
         }
 
-        public TResult Execute<TResult>(ICommand<TModel, TResult> command, IQueryOptions options = null)
+        public virtual TResult Execute<TResult>(ICommand<TModel, TResult> command, IQueryOptions options = null)
         {
             EnsureInitialized();
             var synchronize = (options == null
@@ -89,7 +89,7 @@ namespace Kiwi.Prevalence
             TeardownJournalAndModel();
         }
 
-        public void SaveSnapshot()
+        public virtual void SaveSnapshot()
         {
             EnsureInitialized();
             Configuration.Synchronize.Write(() =>
@@ -99,7 +99,7 @@ namespace Kiwi.Prevalence
                                                 });
         }
 
-        public void Purge()
+        public virtual void Purge()
         {
             EnsureInitialized();
             try

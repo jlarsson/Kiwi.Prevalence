@@ -13,7 +13,7 @@ namespace Kiwi.Prevalence
 
         #region ICommandSerializer Members
 
-        public JournalCommand Serialize(ICommand command)
+        public virtual JournalCommand Serialize(ICommand command)
         {
             return new JournalCommand
                        {
@@ -23,37 +23,37 @@ namespace Kiwi.Prevalence
                        };
         }
 
-        public ICommand Deserialize(JournalCommand command)
+        public virtual ICommand Deserialize(JournalCommand command)
         {
             var type = GetAliasType(command.Type);
+
+            if (type == null)
+            {
+                throw Error.UnknownCommandTypeInJournal(command.Type);
+            }
+
             return (ICommand) command.Command.ToObject(type);
         }
 
         #endregion
 
-        private string GetTypeAlias(Type type)
+        protected virtual string GetTypeAlias(Type type)
         {
             string alias;
             return _typeToAlias.TryGetValue(type, out alias) ? alias : type.AssemblyQualifiedName;
         }
 
-        private Type GetAliasType(string alias)
+        protected virtual Type GetAliasType(string alias)
         {
             Type type;
             if (_aliasToType.TryGetValue(alias, out type))
             {
                 return type;
             }
-            type = Type.GetType(alias);
-
-            if (type == null)
-            {
-                throw Error.UnknownCommandTypeInJournal(alias);
-            }
-            return type;
+            return Type.GetType(alias);
         }
 
-        public void SetAlias(Type commandType, string @alias)
+        public virtual void SetAlias(Type commandType, string @alias)
         {
             if (!typeof(ICommand).IsAssignableFrom(commandType))
             {
@@ -62,7 +62,8 @@ namespace Kiwi.Prevalence
             _aliasToType.Add(@alias, commandType);
             _typeToAlias.Add(commandType, @alias);
         }
-        public void SetAlias<TCommand>(string @alias) where TCommand : ICommand
+
+        public virtual void SetAlias<TCommand>(string @alias) where TCommand : ICommand
         {
             _aliasToType.Add(@alias, typeof (TCommand));
             _typeToAlias.Add(typeof (TCommand), @alias);

@@ -13,12 +13,12 @@ namespace Kiwi.Prevalence
 
         #region IModelFactory<TModel> Members
 
-        public TModel CreateModel()
+        public virtual TModel CreateModel()
         {
             return Factory();
         }
 
-        public IModelEvents CreateModelEvents(TModel model)
+        public virtual IModelEvents CreateModelEvents(TModel model)
         {
             return model as IModelEvents;
         }

@@ -1,5 +1,3 @@
-using Kiwi.Prevalence.Journaling;
-
 namespace Kiwi.Prevalence
 {
     public interface ISnapshotArchiver
